@@ -20,7 +20,7 @@
   </li>
   
   <li class="nav-item">
-  <a class="nav-link " href="{{route('show')}} ">
+  <a class="nav-link " href="# ">
   <i class="bi bi-cart"> </i>
   <span>Order Management</span>
     </a>
