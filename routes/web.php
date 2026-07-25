@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -29,6 +30,15 @@ Route::middleware(['auth'])->group(function () {
         Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
+
+    // Shop floor. Reading the sheet and marking it are separate permissions.
+    Route::get('attendance', [AttendanceController::class, 'index'])
+        ->middleware('permission:attendance.view')
+        ->name('attendance.index');
+
+    Route::post('attendance', [AttendanceController::class, 'store'])
+        ->middleware('permission:attendance.mark')
+        ->name('attendance.store');
 
     // Master data. Reading and editing are separate permissions on purpose: an
     // accountant reads the employee list but must not be able to change it.

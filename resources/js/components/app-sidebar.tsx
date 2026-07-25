@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { usePermission } from '@/hooks/use-permission';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { Hammer, HardHat, LayoutGrid, Receipt, Shapes, Store, UserRound, Users, Wallet } from 'lucide-react';
+import { CalendarCheck, Hammer, HardHat, LayoutGrid, Receipt, Shapes, Store, UserRound, Users, Wallet } from 'lucide-react';
 import AppLogo from './app-logo';
 
 /**
@@ -16,6 +16,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         title: 'ড্যাশবোর্ড',
         url: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'হাজিরা',
+        url: '/attendance',
+        icon: CalendarCheck,
+        permission: 'attendance.view',
     },
     {
         title: 'কাস্টমার',
