@@ -103,6 +103,7 @@ class OrderController extends Controller
             'shop:id,name',
             'items.category:id,name',
             'items.works.employee:id,name,wage_type',
+            'media',
             'statusLogs.changedBy:id,name',
             'creator:id,name',
         ]);
@@ -165,6 +166,19 @@ class OrderController extends Controller
                     'note' => $log->note,
                     'created_at' => $log->created_at?->toDateTimeString(),
                 ])->all(),
+                'photos' => $order->getMedia('photos')
+                    ->concat($order->getMedia('designs'))
+                    ->map(fn ($media) => [
+                        'id' => $media->id,
+                        'collection' => $media->collection_name,
+                        'name' => $media->file_name,
+                        // The web conversion, not the original: a phone photo
+                        // straight off the camera is several megabytes.
+                        'url' => $media->getUrl('web'),
+                        'thumb' => $media->getUrl('thumb'),
+                    ])
+                    ->values()
+                    ->all(),
                 'payments' => Transaction::query()
                     ->where('source_type', TransactionSource::OrderPayment)
                     ->where('source_id', $order->id)

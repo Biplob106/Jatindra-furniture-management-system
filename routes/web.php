@@ -8,6 +8,7 @@ use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemWorkController;
+use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\TradeController;
@@ -54,6 +55,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+
+        Route::post('orders/{order}/photos', [OrderPhotoController::class, 'store'])->name('orders.photos.store');
+        Route::delete('orders/{order}/photos/{media}', [OrderPhotoController::class, 'destroy'])->name('orders.photos.destroy');
 
         // Piece work on an item. Completing one pays a piece worker.
         Route::post('order-items/{item}/works', [OrderItemWorkController::class, 'store'])->name('order-items.works.store');

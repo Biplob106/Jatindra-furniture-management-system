@@ -17,6 +17,7 @@ import {
 } from '@/types/enums';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { ItemWorks, type Work, type WorkerOption } from './item-works';
+import { OrderPhotos, type Photo } from './order-photos';
 import { LoaderCircle, Pencil, Plus } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
@@ -84,6 +85,7 @@ interface Props {
         items: Item[];
         status_logs: StatusLog[];
         payments: Payment[];
+        photos: Photo[];
     };
     canManage: boolean;
 }
@@ -270,6 +272,8 @@ export default function ShowOrder({
                         )}
                     </div>
                 </section>
+
+                <OrderPhotos orderId={order.id} photos={order.photos} canManage={canManage} />
 
                 {/* Payments */}
                 <section className="flex flex-col gap-3 rounded-lg border p-4">
