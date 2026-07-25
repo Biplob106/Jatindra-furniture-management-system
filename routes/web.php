@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemWorkController;
 use App\Http\Controllers\OrderPhotoController;
@@ -75,6 +76,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show'])
         ->middleware('permission:orders.view')
         ->name('orders.show');
+
+    // Shop running costs. No edit or delete: an expense has a cash row behind
+    // it, and changing one without the other desyncs the drawer from the books.
+    Route::get('expenses', [ExpenseController::class, 'index'])
+        ->middleware('permission:expenses.view')
+        ->name('expenses.index');
+
+    Route::middleware('permission:expenses.record')->group(function () {
+        Route::get('expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    });
 
     // Worker accounts. Reading a balance and handing over money are separate
     // permissions: a manager sees what is owed, an accountant pays it.

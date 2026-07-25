@@ -4,7 +4,21 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { usePermission } from '@/hooks/use-permission';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { CalendarCheck, ClipboardList, Hammer, HandCoins, HardHat, LayoutGrid, Receipt, Shapes, Store, UserRound, Users, Wallet } from 'lucide-react';
+import {
+    Banknote,
+    CalendarCheck,
+    ClipboardList,
+    Hammer,
+    HandCoins,
+    HardHat,
+    LayoutGrid,
+    Receipt,
+    Shapes,
+    Store,
+    UserRound,
+    Users,
+    Wallet,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 
 /**
@@ -28,6 +42,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/attendance',
         icon: CalendarCheck,
         permission: 'attendance.view',
+    },
+    {
+        title: 'খরচ',
+        url: '/expenses',
+        icon: Banknote,
+        permission: 'expenses.view',
     },
     {
         title: 'কর্মীর হিসাব',
