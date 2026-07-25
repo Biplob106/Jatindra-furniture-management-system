@@ -2,6 +2,9 @@ import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
     user: User;
+    /** Server-enforced. Use only to decide what to render. */
+    permissions: string[];
+    roles: string[];
 }
 
 export interface BreadcrumbItem {

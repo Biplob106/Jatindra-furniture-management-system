@@ -94,12 +94,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     </Button>
                 </div>
 
-                <div className="text-muted-foreground text-center text-sm">
-                    অ্যাকাউন্ট নেই?{' '}
-                    <TextLink href={route('register')} tabIndex={5}>
-                        নতুন অ্যাকাউন্ট
-                    </TextLink>
-                </div>
+                <div className="text-muted-foreground text-center text-sm">অ্যাকাউন্ট খোলার জন্য মালিকের সাথে যোগাযোগ করুন।</div>
             </form>
 
             {status && <div className="mb-4 text-center text-sm font-medium text-green-600">{status}</div>}

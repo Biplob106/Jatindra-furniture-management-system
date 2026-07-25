@@ -38,12 +38,22 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $user = $request->user();
+
         return array_merge(parent::share($request), [
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
+                // For deciding what to render only. The server still enforces
+                // every one of these on the route.
+                'permissions' => $user?->getAllPermissions()->pluck('name')->all() ?? [],
+                'roles' => $user?->getRoleNames()->all() ?? [],
+            ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
         ]);
     }

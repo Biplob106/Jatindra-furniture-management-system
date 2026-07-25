@@ -1,34 +1,35 @@
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { usePermission } from '@/hooks/use-permission';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { LayoutGrid, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+/**
+ * Nav entries carry the permission that guards their route. Hiding an item is
+ * a convenience; the route enforces the same permission server-side.
+ */
+const navItems: (NavItem & { permission?: string })[] = [
     {
-        title: 'Dashboard',
+        title: 'ড্যাশবোর্ড',
         url: '/dashboard',
         icon: LayoutGrid,
     },
-];
-
-const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
+        title: 'ব্যবহারকারী',
+        url: '/users',
+        icon: Users,
+        permission: 'users.manage',
     },
 ];
 
 export function AppSidebar() {
+    const { can } = usePermission();
+
+    const mainNavItems = navItems.filter((item) => !item.permission || can(item.permission));
+
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -48,7 +49,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
