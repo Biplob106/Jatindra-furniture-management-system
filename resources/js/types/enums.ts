@@ -3,6 +3,15 @@
  * Keep the members and the Bengali labels in step with the PHP side.
  */
 
+export type Role = 'owner' | 'manager' | 'accountant' | 'storekeeper';
+
+export const roleLabels: Record<Role, string> = {
+    owner: 'মালিক',
+    manager: 'ম্যানেজার',
+    accountant: 'হিসাবরক্ষক',
+    storekeeper: 'স্টোরকিপার',
+};
+
 export type WageType = 'daily' | 'monthly' | 'piece';
 
 export const wageTypeLabels: Record<WageType, string> = {
