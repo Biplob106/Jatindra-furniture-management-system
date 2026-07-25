@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ShopController;
@@ -39,6 +40,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('attendance', [AttendanceController::class, 'store'])
         ->middleware('permission:attendance.mark')
         ->name('attendance.store');
+
+    // Worker accounts. Reading a balance and handing over money are separate
+    // permissions: a manager sees what is owed, an accountant pays it.
+    Route::middleware('permission:employee_ledger.view')->group(function () {
+        Route::get('employee-ledger', [EmployeeLedgerController::class, 'index'])->name('employee-ledger.index');
+        Route::get('employee-ledger/{employee}', [EmployeeLedgerController::class, 'show'])->name('employee-ledger.show');
+    });
+
+    Route::post('employee-ledger/{employee}', [EmployeeLedgerController::class, 'store'])
+        ->middleware('permission:employee_payment.record')
+        ->name('employee-ledger.store');
 
     // Master data. Reading and editing are separate permissions on purpose: an
     // accountant reads the employee list but must not be able to change it.
