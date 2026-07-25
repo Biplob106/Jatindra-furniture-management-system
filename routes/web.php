@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ShopController;
@@ -32,6 +34,8 @@ Route::middleware(['auth'])->group(function () {
     // accountant reads the employee list but must not be able to change it.
     $masterData = [
         'shops' => [ShopController::class, 'shops'],
+        'customers' => [CustomerController::class, 'customers'],
+        'employees' => [EmployeeController::class, 'employees'],
         'trades' => [TradeController::class, 'trades'],
         'accounts' => [AccountController::class, 'accounts'],
         'expense-categories' => [ExpenseCategoryController::class, 'expense_categories'],
