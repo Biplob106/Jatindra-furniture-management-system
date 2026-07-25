@@ -13,3 +13,8 @@ Artisan::command('inspire', function () {
 Schedule::command('salary:generate')
     ->monthlyOn(1, '01:00')
     ->timezone('Asia/Dhaka');
+
+// Shop rent for the month now starting. Also safe to run twice.
+Schedule::command('rent:generate')
+    ->monthlyOn(1, '01:30')
+    ->timezone('Asia/Dhaka');
