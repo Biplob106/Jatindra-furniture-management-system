@@ -12,7 +12,13 @@ return new class extends Migration
             $table->id();
             // SH-2607-0142. Printable: it gets written on the paper slip
             // during the transition period, so it has to stay short.
-            $table->string('order_no', 30)->unique();
+            //
+            // Nullable, which docs/schema.md originally was not. A draft has no
+            // number: it earns one when it is confirmed, so an abandoned draft
+            // does not burn one and leave a hole in the printed sequence. The
+            // UNIQUE index still holds, and MySQL allows repeated NULLs under
+            // one, so no two real orders can share a number.
+            $table->string('order_no', 30)->nullable()->unique();
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('shop_id');
             $table->date('order_date');

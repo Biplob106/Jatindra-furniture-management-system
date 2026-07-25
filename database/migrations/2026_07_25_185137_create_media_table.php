@@ -29,4 +29,14 @@ return new class extends Migration
             $table->nullableTimestamps();
         });
     }
+
+    /**
+     * The published stub ships without a down(), which makes a rollback drop
+     * the migration record while leaving the table behind. Added so the
+     * migration is reversible like every other one here.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('media');
+    }
 };

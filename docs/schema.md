@@ -155,7 +155,11 @@ CREATE TABLE product_categories (
 
 CREATE TABLE orders (
   id                     BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  order_no               VARCHAR(30) UNIQUE NOT NULL,   -- SH-2607-0142
+  -- Nullable: a draft has no number and earns one on confirmation, so an
+  -- abandoned draft does not burn one and leave a hole in a sequence that gets
+  -- written on paper slips. UNIQUE still applies; MySQL permits repeated NULLs
+  -- under a unique index, so no two confirmed orders can share a number.
+  order_no               VARCHAR(30) UNIQUE NULL,       -- SH-2607-0142
   customer_id            BIGINT UNSIGNED NOT NULL,
   shop_id                BIGINT UNSIGNED NOT NULL,
   order_date             DATE NOT NULL,
