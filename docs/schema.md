@@ -81,6 +81,19 @@ CREATE TABLE settings (
   `group` VARCHAR(50)
 );
 
+-- Counters behind the printable document numbers (SH-2607-0142 and siblings).
+-- One row per prefix per month. Written only by the NumberSeries service,
+-- which creates the row with insertOrIgnore and then locks it for update, so
+-- two clerks confirming at the same moment cannot both be given 0142.
+CREATE TABLE number_series (
+  id          BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  prefix      VARCHAR(10) NOT NULL,      -- SH, INV, PO, CNC
+  period      CHAR(4) NOT NULL,          -- 2607
+  last_number INT UNSIGNED DEFAULT 0,
+  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
+  UNIQUE KEY uk_series (prefix, period)
+);
+
 CREATE TABLE activity_logs (
   id          BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   user_id     BIGINT UNSIGNED,
