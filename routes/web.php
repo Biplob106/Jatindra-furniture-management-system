@@ -52,7 +52,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+        Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
     });
+
+    // Taking money is its own permission: the person at the counter accepts an
+    // advance without being the one who edits what was ordered.
+    Route::post('orders/{order}/payments', [OrderController::class, 'storePayment'])
+        ->middleware('permission:orders.payment')
+        ->name('orders.payments.store');
 
     // Declared after create so /orders/create is not swallowed by {order}.
     Route::get('orders/{order}', [OrderController::class, 'show'])

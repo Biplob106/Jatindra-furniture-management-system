@@ -114,6 +114,17 @@ export const ledgerEntryTypeLabels: Record<LedgerEntryType, string> = {
     adjustment: 'সংশোধন',
 };
 
+/** transactions.payment_method, which unlike the ledger one includes cheque. */
+export type CashPaymentMethod = 'cash' | 'bkash' | 'nagad' | 'bank' | 'cheque';
+
+export const cashPaymentMethodLabels: Record<CashPaymentMethod, string> = {
+    cash: 'ক্যাশ',
+    bkash: 'বিকাশ',
+    nagad: 'নগদ',
+    bank: 'ব্যাংক',
+    cheque: 'চেক',
+};
+
 export type PaymentMethod = 'cash' | 'bkash' | 'nagad' | 'bank';
 
 export const paymentMethodLabels: Record<PaymentMethod, string> = {

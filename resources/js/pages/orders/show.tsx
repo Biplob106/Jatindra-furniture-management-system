@@ -6,9 +6,18 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
-import { orderItemStatusLabels, orderStatusLabels, type OrderItemStatus, type OrderStatus } from '@/types/enums';
-import { Head, Link } from '@inertiajs/react';
-import { Pencil } from 'lucide-react';
+import { Option, SelectField, TextField } from '@/components/form-field';
+import {
+    cashPaymentMethodLabels,
+    orderItemStatusLabels,
+    orderStatusLabels,
+    type CashPaymentMethod,
+    type OrderItemStatus,
+    type OrderStatus,
+} from '@/types/enums';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { LoaderCircle, Pencil, Plus } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 interface Item {
     id: number;
@@ -35,7 +44,21 @@ interface StatusLog {
     created_at: string | null;
 }
 
+interface Payment {
+    id: number;
+    txn_date: string;
+    amount: string;
+    direction: 'in' | 'out';
+    payment_method: CashPaymentMethod;
+    note: string | null;
+}
+
 interface Props {
+    nextStatuses: { value: OrderStatus; label: string }[];
+    accounts: Option[];
+    paymentMethods: Option[];
+    today: string;
+    canTakePayment: boolean;
     order: {
         id: number;
         order_no: string | null;
@@ -56,6 +79,7 @@ interface Props {
         shop: string;
         items: Item[];
         status_logs: StatusLog[];
+        payments: Payment[];
     };
     canManage: boolean;
 }
@@ -69,7 +93,18 @@ const statusTone: Record<OrderStatus, string> = {
     cancelled: 'bg-destructive/10 text-destructive',
 };
 
-export default function ShowOrder({ order, canManage }: Props) {
+export default function ShowOrder({ order, nextStatuses, accounts, paymentMethods, today, canManage, canTakePayment }: Props) {
+    const [showPayment, setShowPayment] = useState(false);
+    const [movingStatus, setMovingStatus] = useState(false);
+
+    const payment = useForm({
+        amount: '',
+        account_id: accounts.length === 1 ? String(accounts[0].value) : '',
+        paid_on: today,
+        payment_method: 'cash',
+        note: '',
+    });
+
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'ড্যাশবোর্ড', href: '/dashboard' },
         { title: 'অর্ডার', href: '/orders' },
@@ -77,6 +112,31 @@ export default function ShowOrder({ order, canManage }: Props) {
     ];
 
     const isOpen = order.status !== 'delivered' && order.status !== 'cancelled';
+    const owes = Number(order.due_amount) > 0;
+
+    const moveTo = (next: OrderStatus) => {
+        router.post(
+            route('orders.status', order.id),
+            { status: next },
+            {
+                preserveScroll: true,
+                onStart: () => setMovingStatus(true),
+                onFinish: () => setMovingStatus(false),
+            },
+        );
+    };
+
+    const submitPayment: FormEventHandler = (e) => {
+        e.preventDefault();
+
+        payment.post(route('orders.payments.store', order.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                payment.reset('amount', 'note');
+                setShowPayment(false);
+            },
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -105,6 +165,34 @@ export default function ShowOrder({ order, canManage }: Props) {
                 </div>
 
                 <FlashMessages />
+
+                {canManage && nextStatuses.length > 0 && (
+                    <section className="flex flex-col gap-3 rounded-lg border p-4">
+                        <h2 className="font-medium">পরবর্তী ধাপ</h2>
+                        <div className="flex flex-wrap gap-2">
+                            {nextStatuses.map((next) => (
+                                <Button
+                                    key={next.value}
+                                    type="button"
+                                    variant={next.value === 'cancelled' ? 'outline' : 'default'}
+                                    className={cn('h-12 text-base', next.value === 'cancelled' && 'text-destructive')}
+                                    disabled={movingStatus}
+                                    onClick={() => {
+                                        if (next.value !== 'cancelled' || window.confirm('এই অর্ডার বাতিল করতে চান?')) {
+                                            moveTo(next.value);
+                                        }
+                                    }}
+                                >
+                                    {movingStatus && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                                    {next.label}
+                                </Button>
+                            ))}
+                        </div>
+                        {order.status === 'draft' && (
+                            <p className="text-muted-foreground text-sm">নিশ্চিত করলে অর্ডার নম্বর দেওয়া হবে।</p>
+                        )}
+                    </section>
+                )}
 
                 <section className="rounded-lg border p-4">
                     <h2 className="mb-2 font-medium">কাস্টমার</h2>
@@ -167,6 +255,111 @@ export default function ShowOrder({ order, canManage }: Props) {
                             </div>
                         )}
                     </div>
+                </section>
+
+                {/* Payments */}
+                <section className="flex flex-col gap-3 rounded-lg border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="font-medium">জমা</h2>
+                        {canTakePayment && owes && !showPayment && (
+                            <Button type="button" variant="outline" className="h-11" onClick={() => setShowPayment(true)}>
+                                <Plus className="h-4 w-4" />
+                                টাকা জমা নিন
+                            </Button>
+                        )}
+                    </div>
+
+                    {showPayment && (
+                        <form onSubmit={submitPayment} className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
+                            <TextField
+                                id="amount"
+                                label="টাকার পরিমাণ"
+                                type="number"
+                                numeric
+                                value={payment.data.amount}
+                                onChange={(value) => payment.setData('amount', value)}
+                                error={payment.errors.amount}
+                                required
+                                autoFocus
+                                hint={`বাকি ৳ ${toBengaliDigits(order.due_amount)}`}
+                            />
+
+                            <SelectField
+                                id="account_id"
+                                label="কোন হিসাবে"
+                                value={payment.data.account_id}
+                                onChange={(value) => payment.setData('account_id', value)}
+                                options={accounts}
+                                error={payment.errors.account_id}
+                                required
+                            />
+
+                            <SelectField
+                                id="payment_method"
+                                label="কীভাবে"
+                                value={payment.data.payment_method}
+                                onChange={(value) => payment.setData('payment_method', value)}
+                                options={paymentMethods}
+                                error={payment.errors.payment_method}
+                            />
+
+                            <TextField
+                                id="paid_on"
+                                label="তারিখ"
+                                type="date"
+                                value={payment.data.paid_on}
+                                onChange={(value) => payment.setData('paid_on', value)}
+                                error={payment.errors.paid_on}
+                                required
+                            />
+
+                            <div className="sm:col-span-2">
+                                <TextField
+                                    id="payment_note"
+                                    label="নোট"
+                                    value={payment.data.note}
+                                    onChange={(value) => payment.setData('note', value)}
+                                    error={payment.errors.note}
+                                />
+                            </div>
+
+                            <div className="flex gap-3 sm:col-span-2">
+                                <Button type="submit" className="h-12 flex-1 text-base" disabled={payment.processing}>
+                                    {payment.processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                                    জমা নিন
+                                </Button>
+                                <Button type="button" variant="outline" className="h-12 text-base" onClick={() => setShowPayment(false)}>
+                                    বাতিল
+                                </Button>
+                            </div>
+                        </form>
+                    )}
+
+                    {order.payments.length === 0 ? (
+                        <p className="text-muted-foreground text-sm">এখনো কোনো টাকা জমা হয়নি।</p>
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            {order.payments.map((entry) => (
+                                <div key={entry.id} className="flex items-center justify-between gap-3 border-b pb-2 text-sm last:border-0">
+                                    <div>
+                                        <p className="font-medium">{cashPaymentMethodLabels[entry.payment_method]}</p>
+                                        <p className="text-muted-foreground">
+                                            {toBengaliDigits(entry.txn_date)}
+                                            {entry.note && ` · ${entry.note}`}
+                                        </p>
+                                    </div>
+                                    <span
+                                        className={cn(
+                                            'font-semibold tabular-nums',
+                                            entry.direction === 'in' ? 'text-green-700 dark:text-green-400' : 'text-destructive',
+                                        )}
+                                    >
+                                        {entry.direction === 'in' ? '+' : '−'} ৳ {toBengaliDigits(entry.amount)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 <section className="flex flex-col gap-2">

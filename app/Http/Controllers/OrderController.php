@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Orders\ChangeOrderStatus;
+use App\Actions\Orders\RecordOrderAdvance;
 use App\Actions\Orders\SaveOrder;
+use App\Enums\CashPaymentMethod;
 use App\Enums\DimensionUnit;
 use App\Enums\OrderStatus;
+use App\Enums\TransactionSource;
+use App\Http\Requests\Orders\OrderPaymentRequest;
 use App\Http\Requests\Orders\OrderRequest;
+use App\Http\Requests\Orders\OrderStatusRequest;
+use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductCategory;
 use App\Models\Shop;
+use App\Models\Transaction;
 use App\Support\ReferencedRecordException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 class OrderController extends Controller
 {
@@ -142,9 +151,87 @@ class OrderController extends Controller
                     'note' => $log->note,
                     'created_at' => $log->created_at?->toDateTimeString(),
                 ])->all(),
+                'payments' => Transaction::query()
+                    ->where('source_type', TransactionSource::OrderPayment)
+                    ->where('source_id', $order->id)
+                    ->orderByDesc('txn_date')
+                    ->orderByDesc('id')
+                    ->get()
+                    ->map(fn (Transaction $payment) => [
+                        'id' => $payment->id,
+                        'txn_date' => $payment->txn_date->toDateString(),
+                        'amount' => $payment->amount,
+                        'direction' => $payment->direction->value,
+                        'payment_method' => $payment->payment_method->value,
+                        'note' => $payment->note,
+                    ])
+                    ->all(),
             ],
+            // Where this order may go from here, straight off the enum, so the
+            // buttons cannot offer a move the action would refuse.
+            'nextStatuses' => array_map(
+                fn (OrderStatus $status) => ['value' => $status->value, 'label' => $status->label()],
+                $order->status->allowedNext()
+            ),
+            'accounts' => Account::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Account $account) => ['value' => $account->id, 'label' => $account->name])
+                ->all(),
+            'paymentMethods' => array_map(
+                fn (CashPaymentMethod $method) => ['value' => $method->value, 'label' => $method->label()],
+                CashPaymentMethod::cases()
+            ),
+            'today' => now()->toDateString(),
             'canManage' => $request->user()->can('orders.manage'),
+            'canTakePayment' => $request->user()->can('orders.payment'),
         ]);
+    }
+
+    /**
+     * Moves an order along. The transition rules are ChangeOrderStatus's, so a
+     * refusal comes back as its Bengali message rather than a validation error.
+     */
+    public function updateStatus(OrderStatusRequest $request, Order $order, ChangeOrderStatus $changeStatus): RedirectResponse
+    {
+        try {
+            $changeStatus->handle(
+                order: $order,
+                to: OrderStatus::from($request->string('status')->toString()),
+                userId: $request->user()->id,
+                note: $request->input('note'),
+            );
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'অর্ডারের অবস্থা বদলানো হয়েছে।');
+    }
+
+    /**
+     * Takes money against the order.
+     */
+    public function storePayment(OrderPaymentRequest $request, Order $order, RecordOrderAdvance $recordAdvance): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        try {
+            $recordAdvance->handle(
+                order: $order,
+                amount: number_format((float) $validated['amount'], 2, '.', ''),
+                account: Account::findOrFail($validated['account_id']),
+                paidOn: $validated['paid_on'],
+                paymentMethod: CashPaymentMethod::from($validated['payment_method'] ?? 'cash'),
+                note: $validated['note'] ?? null,
+                userId: $request->user()->id,
+            );
+        } catch (RuntimeException $e) {
+            // Over the outstanding amount. Nothing was written.
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'টাকা জমা নেওয়া হয়েছে।');
     }
 
     /**

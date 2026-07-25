@@ -44,6 +44,11 @@ class RolePermissionSeeder extends Seeder
         ],
         'orders' => [
             'orders.view', 'orders.manage', 'orders.delivery',
+            // Taking money against an order. Separate from orders.manage
+            // because editing what was ordered and accepting cash for it are
+            // different acts, and from transactions.record because the person
+            // at the counter takes the advance without being the bookkeeper.
+            'orders.payment',
         ],
         'cash' => [
             'transactions.view', 'transactions.record',
@@ -84,7 +89,7 @@ class RolePermissionSeeder extends Seeder
             'product_categories.view', 'product_categories.manage',
             'attendance.view', 'attendance.mark',
             'employee_ledger.view', 'employee_payment.record',
-            'orders.view', 'orders.manage', 'orders.delivery',
+            'orders.view', 'orders.manage', 'orders.delivery', 'orders.payment',
             'expenses.view', 'expenses.record',
             'suppliers.view', 'materials.view',
             'purchases.view', 'purchases.record',
@@ -103,7 +108,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.view',
             'employee_ledger.view', 'employee_payment.record',
             'salary.generate',
-            'orders.view',
+            'orders.view', 'orders.payment',
             'transactions.view', 'transactions.record',
             'expenses.view', 'expenses.record',
             'daily_closing.view', 'daily_closing.run',
