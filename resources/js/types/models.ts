@@ -1,0 +1,102 @@
+/**
+ * TypeScript mirrors of the Eloquent models in app/Models/.
+ * Money columns arrive as strings because they are DECIMAL casts on the
+ * server; never parseFloat them for comparison or arithmetic.
+ */
+
+import type { AccountType, CustomerType, WageType } from './enums';
+
+export interface Shop {
+    id: number;
+    name: string;
+    address: string | null;
+    phone: string | null;
+    monthly_rent: string;
+    rent_due_day: number | null;
+    landlord_name: string | null;
+    landlord_phone: string | null;
+    electricity_meter_no: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface Customer {
+    id: number;
+    name: string;
+    phone: string;
+    alt_phone: string | null;
+    address: string | null;
+    area: string | null;
+    customer_type: CustomerType;
+    opening_due: string;
+    note: string | null;
+    created_by: number | null;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+}
+
+export interface Trade {
+    id: number;
+    name: string;
+    default_daily_rate: string;
+    is_active: boolean;
+    deleted_at: string | null;
+}
+
+export interface Employee {
+    id: number;
+    employee_code: string;
+    name: string;
+    phone: string | null;
+    address: string | null;
+    photo: string | null;
+    nid_no: string | null;
+    trade_id: number | null;
+    shop_id: number | null;
+    wage_type: WageType;
+    daily_rate: string;
+    monthly_salary: string;
+    joining_date: string | null;
+    guarantor_name: string | null;
+    guarantor_phone: string | null;
+    opening_advance: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+    trade?: Trade;
+    shop?: Shop;
+}
+
+export interface Account {
+    id: number;
+    name: string;
+    type: AccountType;
+    account_no: string | null;
+    shop_id: number | null;
+    opening_balance: string;
+    current_balance: string;
+    is_active: boolean;
+    deleted_at: string | null;
+}
+
+export interface ExpenseCategory {
+    id: number;
+    name: string;
+    is_recurring: boolean;
+    is_active: boolean;
+    deleted_at: string | null;
+}
+
+export interface ProductCategory {
+    id: number;
+    name: string;
+    parent_id: number | null;
+    is_active: boolean;
+    deleted_at: string | null;
+    parent?: ProductCategory;
+    children?: ProductCategory[];
+}
