@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemWorkController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\TradeController;
@@ -53,6 +54,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
+
+        // Piece work on an item. Completing one pays a piece worker.
+        Route::post('order-items/{item}/works', [OrderItemWorkController::class, 'store'])->name('order-items.works.store');
+        Route::put('order-items/{item}/works/{work}', [OrderItemWorkController::class, 'update'])->name('order-items.works.update');
+        Route::delete('order-items/{item}/works/{work}', [OrderItemWorkController::class, 'destroy'])->name('order-items.works.destroy');
     });
 
     // Taking money is its own permission: the person at the counter accepts an

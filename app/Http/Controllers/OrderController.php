@@ -7,13 +7,16 @@ use App\Actions\Orders\RecordOrderAdvance;
 use App\Actions\Orders\SaveOrder;
 use App\Enums\CashPaymentMethod;
 use App\Enums\DimensionUnit;
+use App\Enums\OrderItemWorkStatus;
 use App\Enums\OrderStatus;
 use App\Enums\TransactionSource;
+use App\Enums\WageType;
 use App\Http\Requests\Orders\OrderPaymentRequest;
 use App\Http\Requests\Orders\OrderRequest;
 use App\Http\Requests\Orders\OrderStatusRequest;
 use App\Models\Account;
 use App\Models\Customer;
+use App\Models\Employee;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductCategory;
@@ -99,6 +102,7 @@ class OrderController extends Controller
             'customer:id,name,phone,area,address',
             'shop:id,name',
             'items.category:id,name',
+            'items.works.employee:id,name,wage_type',
             'statusLogs.changedBy:id,name',
             'creator:id,name',
         ]);
@@ -142,6 +146,16 @@ class OrderController extends Controller
                     'status' => $item->status->value,
                     'target_date' => $item->target_date?->toDateString(),
                     'remarks' => $item->remarks,
+                    'works' => $item->works->map(fn ($work) => [
+                        'id' => $work->id,
+                        'employee_id' => $work->employee_id,
+                        'employee' => $work->employee->name,
+                        'work_type' => $work->work_type,
+                        'agreed_amount' => $work->agreed_amount,
+                        'status' => $work->status->value,
+                        'assigned_date' => $work->assigned_date?->toDateString(),
+                        'completed_at' => $work->completed_at?->toDateTimeString(),
+                    ])->all(),
                 ])->all(),
                 'status_logs' => $order->statusLogs->sortByDesc('id')->values()->map(fn ($log) => [
                     'id' => $log->id,
@@ -184,6 +198,22 @@ class OrderController extends Controller
                 CashPaymentMethod::cases()
             ),
             'today' => now()->toDateString(),
+            // Only piece workers may carry a contract amount, so the form
+            // knows which of them it can offer one for.
+            'workers' => Employee::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'wage_type'])
+                ->map(fn (Employee $employee) => [
+                    'value' => $employee->id,
+                    'label' => $employee->name,
+                    'isPieceWorker' => $employee->wage_type === WageType::Piece,
+                ])
+                ->all(),
+            'workStatuses' => array_map(
+                fn (OrderItemWorkStatus $status) => ['value' => $status->value, 'label' => $status->label()],
+                OrderItemWorkStatus::cases()
+            ),
             'canManage' => $request->user()->can('orders.manage'),
             'canTakePayment' => $request->user()->can('orders.payment'),
         ]);

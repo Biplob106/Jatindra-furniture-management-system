@@ -16,6 +16,7 @@ import {
     type OrderStatus,
 } from '@/types/enums';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ItemWorks, type Work, type WorkerOption } from './item-works';
 import { LoaderCircle, Pencil, Plus } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
@@ -33,6 +34,7 @@ interface Item {
     status: OrderItemStatus;
     target_date: string | null;
     remarks: string | null;
+    works: Work[];
 }
 
 interface StatusLog {
@@ -57,6 +59,8 @@ interface Props {
     nextStatuses: { value: OrderStatus; label: string }[];
     accounts: Option[];
     paymentMethods: Option[];
+    workers: WorkerOption[];
+    workStatuses: Option[];
     today: string;
     canTakePayment: boolean;
     order: {
@@ -93,7 +97,17 @@ const statusTone: Record<OrderStatus, string> = {
     cancelled: 'bg-destructive/10 text-destructive',
 };
 
-export default function ShowOrder({ order, nextStatuses, accounts, paymentMethods, today, canManage, canTakePayment }: Props) {
+export default function ShowOrder({
+    order,
+    nextStatuses,
+    accounts,
+    paymentMethods,
+    workers,
+    workStatuses,
+    today,
+    canManage,
+    canTakePayment,
+}: Props) {
     const [showPayment, setShowPayment] = useState(false);
     const [movingStatus, setMovingStatus] = useState(false);
 
@@ -389,6 +403,16 @@ export default function ShowOrder({ order, nextStatuses, accounts, paymentMethod
                             </div>
 
                             {item.remarks && <p className="text-muted-foreground mt-2 text-sm">{item.remarks}</p>}
+
+                            {canManage && (
+                                <ItemWorks
+                                    itemId={item.id}
+                                    works={item.works}
+                                    workers={workers}
+                                    workStatuses={workStatuses}
+                                    today={today}
+                                />
+                            )}
                         </div>
                     ))}
                 </section>
