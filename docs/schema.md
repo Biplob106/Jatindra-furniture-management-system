@@ -44,7 +44,8 @@ CREATE TABLE shops (
   landlord_phone        VARCHAR(20),
   electricity_meter_no  VARCHAR(50),
   is_active             BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL
+  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
+  deleted_at TIMESTAMP NULL                            -- soft delete, master data
 );
 
 CREATE TABLE roles (

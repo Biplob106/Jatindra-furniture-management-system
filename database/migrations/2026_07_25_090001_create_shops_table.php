@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('electricity_meter_no', 50)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
