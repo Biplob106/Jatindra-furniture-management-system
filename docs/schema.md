@@ -48,25 +48,29 @@ CREATE TABLE shops (
   deleted_at TIMESTAMP NULL                            -- soft delete, master data
 );
 
-CREATE TABLE roles (
-  id         BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  name       VARCHAR(50) NOT NULL,      -- owner, manager, accountant, storekeeper
-  permissions JSON,
-  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL
-);
+-- Roles and permissions are owned by spatie/laravel-permission, not by this
+-- document. Its published migration creates: roles, permissions,
+-- model_has_roles, model_has_permissions, role_has_permissions.
+--
+--   roles       (id, name, guard_name, timestamps)  UNIQUE (name, guard_name)
+--   permissions (id, name, guard_name, timestamps)  UNIQUE (name, guard_name)
+--
+-- Roles: owner, manager, accountant, storekeeper. Assigned to users through
+-- model_has_roles via the HasRoles trait, NOT through a users.role_id column.
+-- Permission names are the strings checked server-side; anything containing
+-- `profit` or `reports.financial` belongs to owner only (see CLAUDE.md).
+-- Never re-declare these tables here.
 
 CREATE TABLE users (
   id         BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   name       VARCHAR(150) NOT NULL,
-  phone      VARCHAR(20) UNIQUE NOT NULL,
+  phone      VARCHAR(20) UNIQUE NOT NULL,     -- login key
   email      VARCHAR(150) UNIQUE NULL,
   password   VARCHAR(255) NOT NULL,
-  role_id    BIGINT UNSIGNED NOT NULL,
   shop_id    BIGINT UNSIGNED NULL,
   is_active  BOOLEAN DEFAULT TRUE,
   last_login_at TIMESTAMP NULL,
   created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
-  FOREIGN KEY (role_id) REFERENCES roles(id),
   FOREIGN KEY (shop_id) REFERENCES shops(id)
 );
 
@@ -91,21 +95,20 @@ CREATE TABLE activity_logs (
   INDEX idx_user_date (user_id, created_at)
 );
 
--- Polymorphic file store: order photos, design files, invoice slips, receipts
-CREATE TABLE media (
-  id            BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  mediable_type VARCHAR(100) NOT NULL,
-  mediable_id   BIGINT UNSIGNED NOT NULL,
-  file_path     VARCHAR(255) NOT NULL,
-  thumb_path    VARCHAR(255),
-  mime_type     VARCHAR(100),
-  file_size     INT UNSIGNED,
-  caption       VARCHAR(255),
-  sort_order    SMALLINT DEFAULT 0,
-  uploaded_by   BIGINT UNSIGNED,
-  created_at    TIMESTAMP NULL,
-  INDEX idx_mediable (mediable_type, mediable_id)
-);
+-- Polymorphic file store: order photos, design files, invoice slips, receipts.
+-- Owned by spatie/laravel-medialibrary, not by this document. Its published
+-- migration creates:
+--
+--   media (id, model_type, model_id, uuid, collection_name, name, file_name,
+--          mime_type, disk, conversions_disk, size, manipulations,
+--          custom_properties, generated_conversions, responsive_images,
+--          order_column, timestamps)
+--
+-- Attach with the InteractsWithMedia trait. `collection_name` separates
+-- order photos from design files from receipts. Thumbnails and the 1600px
+-- / ~200KB compression in section 12 are registered media conversions, not
+-- a thumb_path column. Caption goes in `custom_properties`, uploader id too.
+-- Sort order is `order_column`. Never re-declare this table here.
 ```
 
 ---
@@ -691,7 +694,7 @@ Other reports to build: monthly profit and loss, customer due list, delivery due
 
 | Phase | Weeks | Tables | Deliverable |
 |---|---|---|---|
-| 1. Foundation | 1-2 | shops, roles, users, settings, media, customers, employees, trades, accounts, expense_categories | Login, master data entry |
+| 1. Foundation | 1-2 | shops, users, settings, activity_logs, customers, employees, trades, accounts, expense_categories, product_categories (+ spatie roles/permissions and media, published not written) | Phone login, master data entry |
 | 2. Labour | 3-4 | attendance, employee_ledger, order_item_works | Attendance screen, worker balance |
 | 3. Orders | 5-6 | orders, order_items, order_status_logs | Order entry with photos, phone search |
 | 4. Cash | 7-8 | transactions, expenses, daily_closings | Automated nightly closing |
