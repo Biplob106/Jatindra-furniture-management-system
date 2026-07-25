@@ -45,6 +45,15 @@ return [
             'throw' => false,
         ],
 
+        // Order design references, employee photos, expense receipt slips.
+        'photos' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/photos'),
+            'url' => env('APP_URL').'/storage/photos',
+            'visibility' => 'public',
+            'throw' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

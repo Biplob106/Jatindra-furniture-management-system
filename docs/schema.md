@@ -2,10 +2,6 @@
 
 Target stack: Laravel 12 + Inertia 2 + React 19 + MySQL 8 + PWA (shop floor screens)
 
-> Note: an earlier revision of this document named Filament v4 as the UI layer.
-> The implemented stack is Inertia 2 + React 19 + TypeScript + Tailwind 4 +
-> shadcn/ui, per the build prompt pack. The database schema below is unchanged
-> and remains the single source of truth for tables and columns.
 
 ---
 
