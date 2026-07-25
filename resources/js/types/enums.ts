@@ -36,6 +36,42 @@ export const accountTypeLabels: Record<AccountType, string> = {
     bank: 'ব্যাংক',
 };
 
+export type OrderStatus = 'draft' | 'confirmed' | 'in_production' | 'ready' | 'delivered' | 'cancelled';
+
+export const orderStatusLabels: Record<OrderStatus, string> = {
+    draft: 'খসড়া',
+    confirmed: 'নিশ্চিত',
+    in_production: 'কাজ চলছে',
+    ready: 'তৈরি',
+    delivered: 'ডেলিভারি হয়েছে',
+    cancelled: 'বাতিল',
+};
+
+export type OrderItemStatus = 'pending' | 'in_progress' | 'completed';
+
+export const orderItemStatusLabels: Record<OrderItemStatus, string> = {
+    pending: 'বাকি',
+    in_progress: 'কাজ চলছে',
+    completed: 'শেষ',
+};
+
+export type DimensionUnit = 'inch' | 'feet' | 'cm';
+
+export const dimensionUnitLabels: Record<DimensionUnit, string> = {
+    inch: 'ইঞ্চি',
+    feet: 'ফুট',
+    cm: 'সেন্টিমিটার',
+};
+
+export type OrderItemWorkStatus = 'assigned' | 'working' | 'done' | 'rejected';
+
+export const orderItemWorkStatusLabels: Record<OrderItemWorkStatus, string> = {
+    assigned: 'দেওয়া হয়েছে',
+    working: 'কাজ চলছে',
+    done: 'শেষ',
+    rejected: 'বাতিল',
+};
+
 export type AttendanceStatus = 'present' | 'absent' | 'half_day' | 'leave' | 'holiday';
 
 export const attendanceStatusLabels: Record<AttendanceStatus, string> = {

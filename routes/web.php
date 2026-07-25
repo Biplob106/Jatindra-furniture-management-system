@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\TradeController;
@@ -40,6 +41,23 @@ Route::middleware(['auth'])->group(function () {
     Route::post('attendance', [AttendanceController::class, 'store'])
         ->middleware('permission:attendance.mark')
         ->name('attendance.store');
+
+    // Orders. Reading the book and taking an order are separate permissions.
+    Route::middleware('permission:orders.view')->group(function () {
+        Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    });
+
+    Route::middleware('permission:orders.manage')->group(function () {
+        Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
+        Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::get('orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+        Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    });
+
+    // Declared after create so /orders/create is not swallowed by {order}.
+    Route::get('orders/{order}', [OrderController::class, 'show'])
+        ->middleware('permission:orders.view')
+        ->name('orders.show');
 
     // Worker accounts. Reading a balance and handing over money are separate
     // permissions: a manager sees what is owed, an accountant pays it.
