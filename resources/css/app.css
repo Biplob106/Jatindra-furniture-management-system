@@ -156,3 +156,146 @@
         @apply bg-background text-foreground;
     }
 }
+
+/*
+ * Welcome page — painted signboard direction.
+ * Palette is taken from Bangladeshi shop signboards (enamel green, brass
+ * lettering) and the timber the workshop cuts (mahogany). Scoped to .jt so
+ * none of it leaks into the application shell.
+ */
+.jt {
+    --jt-ink: #14100e;
+    --jt-board: #0e4b3c;
+    --jt-board-deep: #0a3a2e;
+    --jt-brass: #c8922f;
+    --jt-brass-lit: #e8b33a;
+    --jt-mahogany: #7a1c22;
+    --jt-bone: #f4efe1;
+    --jt-paper: #eceae0;
+    --jt-muted: #6b6558;
+    --jt-rule: rgba(20, 16, 14, 0.16);
+
+    background-color: var(--jt-paper);
+    color: var(--jt-ink);
+    /* Paper tooth: two hairline gradients, almost invisible, kills the flat fill. */
+    background-image:
+        repeating-linear-gradient(0deg, rgba(20, 16, 14, 0.022) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(20, 16, 14, 0.015) 0 1px, transparent 1px 4px);
+}
+
+.dark .jt {
+    --jt-ink: #ece7d9;
+    --jt-bone: #f4efe1;
+    --jt-paper: #12100d;
+    --jt-muted: #8f8878;
+    --jt-rule: rgba(236, 231, 217, 0.16);
+
+    background-image:
+        repeating-linear-gradient(0deg, rgba(236, 231, 217, 0.02) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(236, 231, 217, 0.014) 0 1px, transparent 1px 4px);
+}
+
+.jt-display {
+    font-family: 'Baloo Da 2', 'Hind Siliguri', sans-serif;
+}
+
+.jt-label {
+    font-family: 'Anek Bangla', 'Hind Siliguri', sans-serif;
+    letter-spacing: 0.14em;
+}
+
+/* The signature: an enamel-painted board, bolted at four corners. */
+.jt-board {
+    background:
+        radial-gradient(120% 140% at 20% 0%, var(--jt-board) 0%, var(--jt-board-deep) 78%);
+    box-shadow:
+        inset 0 0 0 2px var(--jt-brass),
+        inset 0 0 0 10px var(--jt-board-deep),
+        inset 0 0 0 11px rgba(200, 146, 47, 0.55),
+        0 18px 40px -22px rgba(10, 30, 24, 0.9);
+}
+
+.jt-bolt {
+    background: radial-gradient(circle at 34% 32%, var(--jt-brass-lit), #7d5a1a 72%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Hand-painted lettering sits slightly proud of the board. */
+.jt-painted {
+    color: var(--jt-brass-lit);
+    text-shadow:
+        0 1px 0 rgba(10, 40, 32, 0.9),
+        0 2px 0 rgba(10, 40, 32, 0.55),
+        0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+.jt-row {
+    border-top: 1px solid var(--jt-rule);
+}
+
+.jt-row:last-child {
+    border-bottom: 1px solid var(--jt-rule);
+}
+
+.jt-rule-brass {
+    background: linear-gradient(90deg, var(--jt-brass) 0%, rgba(200, 146, 47, 0.15) 100%);
+}
+
+.jt a:focus-visible,
+.jt button:focus-visible {
+    outline: 2px solid var(--jt-brass);
+    outline-offset: 3px;
+}
+
+/* Load sequence: board settles, brass rule draws, ledger rows fill in. */
+@keyframes jt-settle {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes jt-draw {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes jt-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.jt-anim-settle {
+    animation: jt-settle 620ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.jt-anim-draw {
+    transform-origin: left center;
+    animation: jt-draw 700ms cubic-bezier(0.65, 0, 0.35, 1) 260ms both;
+}
+
+.jt-anim-rise {
+    animation: jt-rise 460ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .jt-anim-settle,
+    .jt-anim-draw,
+    .jt-anim-rise {
+        animation: none;
+    }
+}
