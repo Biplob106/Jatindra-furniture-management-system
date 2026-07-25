@@ -4,7 +4,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { usePermission } from '@/hooks/use-permission';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Users } from 'lucide-react';
+import { Hammer, LayoutGrid, Receipt, Shapes, Store, Users, Wallet } from 'lucide-react';
 import AppLogo from './app-logo';
 
 /**
@@ -16,6 +16,36 @@ const navItems: (NavItem & { permission?: string })[] = [
         title: 'ড্যাশবোর্ড',
         url: '/dashboard',
         icon: LayoutGrid,
+    },
+    {
+        title: 'দোকান',
+        url: '/shops',
+        icon: Store,
+        permission: 'shops.view',
+    },
+    {
+        title: 'কাজের ধরন',
+        url: '/trades',
+        icon: Hammer,
+        permission: 'trades.view',
+    },
+    {
+        title: 'হিসাব',
+        url: '/accounts',
+        icon: Wallet,
+        permission: 'accounts.view',
+    },
+    {
+        title: 'খরচের খাত',
+        url: '/expense-categories',
+        icon: Receipt,
+        permission: 'expense_categories.view',
+    },
+    {
+        title: 'পণ্যের ক্যাটাগরি',
+        url: '/product-categories',
+        icon: Shapes,
+        permission: 'product_categories.view',
     },
     {
         title: 'ব্যবহারকারী',
