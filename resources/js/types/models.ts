@@ -4,7 +4,7 @@
  * server; never parseFloat them for comparison or arithmetic.
  */
 
-import type { AccountType, CustomerType, WageType } from './enums';
+import type { AccountType, AttendanceStatus, CustomerType, LedgerDirection, LedgerEntryType, PaymentMethod, WageType } from './enums';
 
 export interface Shop {
     id: number;
@@ -89,6 +89,36 @@ export interface ExpenseCategory {
     is_recurring: boolean;
     is_active: boolean;
     deleted_at: string | null;
+}
+
+export interface Attendance {
+    id: number;
+    employee_id: number;
+    shop_id: number | null;
+    work_date: string;
+    status: AttendanceStatus;
+    in_time: string | null;
+    out_time: string | null;
+    overtime_hours: string;
+    overtime_rate: string;
+    note: string | null;
+    marked_by: number | null;
+    employee?: Employee;
+}
+
+export interface EmployeeLedgerEntry {
+    id: number;
+    employee_id: number;
+    entry_date: string;
+    type: LedgerEntryType;
+    direction: LedgerDirection;
+    amount: string;
+    reference_type: string | null;
+    reference_id: number | null;
+    payment_method: PaymentMethod | null;
+    note: string | null;
+    created_by: number | null;
+    created_at: string;
 }
 
 export interface ProductCategory {
