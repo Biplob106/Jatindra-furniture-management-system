@@ -125,6 +125,7 @@ CREATE TABLE customers (
   note         TEXT,
   created_by   BIGINT UNSIGNED,
   created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
+  deleted_at TIMESTAMP NULL,                       -- soft delete, master data
   INDEX idx_name (name), INDEX idx_area (area)
 );
 
@@ -132,7 +133,8 @@ CREATE TABLE product_categories (
   id        BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   name      VARCHAR(100) NOT NULL,             -- খাট, আলমারি, সোফা, ড্রেসিং টেবিল
   parent_id BIGINT UNSIGNED NULL,
-  is_active BOOLEAN DEFAULT TRUE
+  is_active BOOLEAN DEFAULT TRUE,
+  deleted_at TIMESTAMP NULL                    -- soft delete, master data
 );
 
 CREATE TABLE orders (
@@ -203,7 +205,8 @@ CREATE TABLE trades (
   id                 BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   name               VARCHAR(100) NOT NULL,   -- বার্নিশ, নকশা, প্লেন কাঠ, সিএনসি, হেলপার
   default_daily_rate DECIMAL(10,2) DEFAULT 0,
-  is_active          BOOLEAN DEFAULT TRUE
+  is_active          BOOLEAN DEFAULT TRUE,
+  deleted_at         TIMESTAMP NULL           -- soft delete, master data
 );
 
 CREATE TABLE employees (
@@ -225,6 +228,7 @@ CREATE TABLE employees (
   opening_advance DECIMAL(12,2) DEFAULT 0,
   is_active       BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
+  deleted_at TIMESTAMP NULL,                       -- soft delete, master data
   FOREIGN KEY (trade_id) REFERENCES trades(id)
 );
 
@@ -322,7 +326,8 @@ CREATE TABLE products (
   min_stock     DECIMAL(10,2) DEFAULT 0,
   shop_id       BIGINT UNSIGNED,
   is_active     BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL
+  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
+  deleted_at TIMESTAMP NULL                      -- soft delete, master data
 );
 
 CREATE TABLE stock_movements (
@@ -418,7 +423,8 @@ CREATE TABLE suppliers (
   credit_limit        DECIMAL(12,2) DEFAULT 0,
   default_credit_days SMALLINT DEFAULT 0,
   is_active           BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL
+  created_at TIMESTAMP NULL, updated_at TIMESTAMP NULL,
+  deleted_at TIMESTAMP NULL                            -- soft delete, master data
 );
 
 CREATE TABLE materials (
@@ -516,7 +522,8 @@ CREATE TABLE accounts (
   shop_id         BIGINT UNSIGNED NULL,
   opening_balance DECIMAL(14,2) DEFAULT 0,
   current_balance DECIMAL(14,2) DEFAULT 0,
-  is_active       BOOLEAN DEFAULT TRUE
+  is_active       BOOLEAN DEFAULT TRUE,
+  deleted_at      TIMESTAMP NULL              -- soft delete, master data
 );
 
 CREATE TABLE expense_categories (
@@ -524,7 +531,8 @@ CREATE TABLE expense_categories (
   name      VARCHAR(100) NOT NULL,   -- দোকান ভাড়া, কারেন্ট বিল, চা-নাস্তা,
                                      -- ট্রান্সপোর্ট, মেশিন মেরামত, লাইসেন্স
   is_recurring BOOLEAN DEFAULT FALSE,
-  is_active BOOLEAN DEFAULT TRUE
+  is_active BOOLEAN DEFAULT TRUE,
+  deleted_at TIMESTAMP NULL              -- soft delete, master data
 );
 
 CREATE TABLE expenses (
