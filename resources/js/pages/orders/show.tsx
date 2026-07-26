@@ -9,9 +9,13 @@ import { type BreadcrumbItem } from '@/types';
 import { Option, SelectField, TextField } from '@/components/form-field';
 import {
     cashPaymentMethodLabels,
+    materialMovementTypeLabels,
+    materialUnitLabels,
     orderItemStatusLabels,
     orderStatusLabels,
     type CashPaymentMethod,
+    type MaterialMovementType,
+    type MaterialUnit,
     type OrderItemStatus,
     type OrderStatus,
 } from '@/types/enums';
@@ -56,8 +60,32 @@ interface Payment {
     note: string | null;
 }
 
+interface Profit {
+    revenue: string;
+    material_cost: string;
+    piece_labour_cost: string;
+    direct_cost: string;
+    gross_profit: string;
+    margin_percent: string;
+    has_unattributed_costs: boolean;
+}
+
+interface MaterialUsed {
+    id: number;
+    movement_date: string;
+    type: MaterialMovementType;
+    name: string;
+    unit: MaterialUnit;
+    quantity: string;
+    unit_cost: string;
+    line_cost: string;
+}
+
 interface Props {
     nextStatuses: { value: OrderStatus; label: string }[];
+    /** Null unless the reader holds orders.profit. Owner only. */
+    profit: Profit | null;
+    materialUsed: MaterialUsed[];
     accounts: Option[];
     paymentMethods: Option[];
     workers: WorkerOption[];
@@ -101,6 +129,8 @@ const statusTone: Record<OrderStatus, string> = {
 
 export default function ShowOrder({
     order,
+    profit,
+    materialUsed,
     nextStatuses,
     accounts,
     paymentMethods,
@@ -420,6 +450,67 @@ export default function ShowOrder({
                         </div>
                     ))}
                 </section>
+
+                {/* Owner only. The server sends null to everyone else, so there
+                    is nothing here to reveal by inspecting the page. */}
+                {profit && (
+                    <section className="rounded-lg border p-4">
+                        <h2 className="mb-3 font-medium">এই অর্ডারের লাভ</h2>
+
+                        <div className="flex flex-col gap-1 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">অর্ডারের দাম</span>
+                                <Money amount={profit.revenue} />
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">মালামালের খরচ</span>
+                                <span>
+                                    − <Money amount={profit.material_cost} />
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">কাজের মজুরি (চুক্তি)</span>
+                                <span>
+                                    − <Money amount={profit.piece_labour_cost} />
+                                </span>
+                            </div>
+                            <div className="mt-1 flex justify-between border-t pt-2 font-semibold">
+                                <span>লাভ</span>
+                                <span className={Number(profit.gross_profit) < 0 ? 'text-destructive' : 'text-emerald-600'}>
+                                    <Money amount={profit.gross_profit} /> ({toBengaliDigits(profit.margin_percent)}%)
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Attributing a day of a carpenter's time across four jobs,
+                            or a month's rent across everything, needs a rule nobody
+                            has written down. Say so rather than imply exactness. */}
+                        <p className="text-muted-foreground mt-3 text-xs">
+                            দৈনিক হাজিরার মজুরি ও দোকানের সাধারণ খরচ এই হিসাবে ধরা হয়নি।
+                        </p>
+
+                        {materialUsed.length > 0 && (
+                            <div className="mt-3 flex flex-col gap-2 border-t pt-3">
+                                <p className="text-sm font-medium">যা ব্যবহার হয়েছে</p>
+                                {materialUsed.map((used) => (
+                                    <div key={used.id} className="flex items-center gap-3 text-sm">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate">{used.name}</p>
+                                            <p className="text-muted-foreground">
+                                                {toBengaliDigits(used.quantity)} {materialUnitLabels[used.unit]} × ৳{' '}
+                                                {toBengaliDigits(used.unit_cost)} — {materialMovementTypeLabels[used.type]}
+                                            </p>
+                                        </div>
+                                        <span className={used.type === 'return' ? 'text-emerald-600' : ''}>
+                                            {used.type === 'return' ? '− ' : ''}
+                                            <Money amount={used.line_cost} />
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                )}
 
                 {order.note && (
                     <section className="rounded-lg border p-4">

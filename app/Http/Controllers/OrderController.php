@@ -17,11 +17,13 @@ use App\Http\Requests\Orders\OrderStatusRequest;
 use App\Models\Account;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\MaterialMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProductCategory;
 use App\Models\Shop;
 use App\Models\Transaction;
+use App\Queries\OrderProfit;
 use App\Support\ReferencedRecordException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +33,8 @@ use RuntimeException;
 
 class OrderController extends Controller
 {
+    public function __construct(private readonly OrderProfit $profit) {}
+
     /**
      * The order book. Phone search first, because that is how the counter finds
      * an order: the customer reads their number off the slip.
@@ -230,7 +234,42 @@ class OrderController extends Controller
             ),
             'canManage' => $request->user()->can('orders.manage'),
             'canTakePayment' => $request->user()->can('orders.payment'),
+            // Owner only, and enforced here rather than by hiding a panel: the
+            // figures never reach anyone else's browser.
+            'profit' => $request->user()->can('orders.profit')
+                ? $this->profit->forOrder($order)
+                : null,
+            'materialUsed' => $request->user()->can('orders.profit')
+                ? $this->materialUsedFor($order)
+                : [],
         ]);
+    }
+
+    /**
+     * What this job took out of the store, newest first. Sits beside the
+     * profit figure, because a margin nobody can break down is not worth much.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function materialUsedFor(Order $order): array
+    {
+        return MaterialMovement::query()
+            ->with('material:id,name,unit')
+            ->where('order_id', $order->id)
+            ->orderByDesc('movement_date')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (MaterialMovement $movement) => [
+                'id' => $movement->id,
+                'movement_date' => $movement->movement_date->toDateString(),
+                'type' => $movement->type->value,
+                'name' => $movement->material->name,
+                'unit' => $movement->material->unit->value,
+                'quantity' => $movement->quantity,
+                'unit_cost' => $movement->unit_cost,
+                'line_cost' => bcmul((string) $movement->quantity, (string) $movement->unit_cost, 2),
+            ])
+            ->all();
     }
 
     /**
