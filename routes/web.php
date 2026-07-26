@@ -16,6 +16,7 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SupplierLedgerController;
 use App\Http\Controllers\TradeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -80,6 +81,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show'])
         ->middleware('permission:orders.view')
         ->name('orders.show');
+
+    // Supplier accounts. Reading what is owed and paying it are separate
+    // permissions: a storekeeper never hands money over.
+    Route::middleware('permission:supplier_ledger.view')->group(function () {
+        Route::get('supplier-ledger', [SupplierLedgerController::class, 'index'])->name('supplier-ledger.index');
+        Route::get('supplier-ledger/{supplier}', [SupplierLedgerController::class, 'show'])->name('supplier-ledger.show');
+    });
+
+    Route::post('supplier-ledger/{supplier}', [SupplierLedgerController::class, 'store'])
+        ->middleware('permission:supplier_payment.record')
+        ->name('supplier-ledger.store');
 
     // Buying. Reading the challan book and writing one in are separate
     // permissions: a storekeeper records what arrived, an accountant reads it.

@@ -10,6 +10,7 @@ import {
     CalendarCheck,
     CalendarClock,
     ClipboardList,
+    Coins,
     Hammer,
     HandCoins,
     HardHat,
@@ -70,6 +71,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/employee-ledger',
         icon: HandCoins,
         permission: 'employee_ledger.view',
+    },
+    {
+        title: 'সরবরাহকারীর হিসাব',
+        url: '/supplier-ledger',
+        icon: Coins,
+        permission: 'supplier_ledger.view',
     },
     {
         title: 'কাস্টমার',
