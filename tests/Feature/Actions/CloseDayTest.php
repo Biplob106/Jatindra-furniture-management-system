@@ -8,6 +8,7 @@ use App\Enums\TransactionSource;
 use App\Models\Account;
 use App\Models\DailyClosing;
 use App\Models\Order;
+use App\Models\Purchase;
 use App\Models\Shop;
 use App\Models\User;
 use App\Services\CashService;
@@ -241,9 +242,71 @@ it('holds to the paisa', function () {
 });
 
 /**
- * Both need phase 5 tables. Zero is honest; a wrong figure would not be.
+ * Goods taken on credit never touch the drawer, so they are invisible to the
+ * arithmetic above. That is exactly why the figure sits beside it: a night
+ * that looks quiet in cash can still have added to what we owe.
  */
-it('reports the phase 5 figures as zero rather than guessing', function () {
+it('records what was taken on credit today', function () {
+    Purchase::factory()->onCredit('18000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-20',
+    ]);
+    // Half settled at the counter, so only the rest was taken on credit.
+    Purchase::factory()->withTotals('10000.00', '4000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-20',
+    ]);
+    // Paid in full, so nothing was taken on credit.
+    Purchase::factory()->withTotals('5000.00', '5000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-20',
+    ]);
+
+    $closing = $this->action->handle($this->shop, '2026-07-20', '5000');
+
+    expect($closing->credit_purchase_today)->toBe('24000.00');
+});
+
+it('leaves yesterday out of what was taken on credit today', function () {
+    Purchase::factory()->onCredit('18000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-19',
+    ]);
+
+    $closing = $this->action->handle($this->shop, '2026-07-20', '5000');
+
+    expect($closing->credit_purchase_today)->toBe('0.00')
+        // Yesterday's challan is still owed, so it stays in the total.
+        ->and($closing->total_payable)->toBe('18000.00');
+});
+
+it('records what we still owe suppliers', function () {
+    Purchase::factory()->onCredit('18000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-10',
+    ]);
+    Purchase::factory()->withTotals('10000.00', '4000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-18',
+    ]);
+    Purchase::factory()->withTotals('5000.00', '5000.00')->create([
+        'shop_id' => $this->shop->id,
+        'purchase_date' => '2026-07-19',
+    ]);
+
+    $closing = $this->action->handle($this->shop, '2026-07-20', '5000');
+
+    expect($closing->total_payable)->toBe('24000.00');
+});
+
+it('keeps another shop out of what we owe', function () {
+    $otherShop = Shop::factory()->create();
+
+    Purchase::factory()->onCredit('18000.00')->create([
+        'shop_id' => $otherShop->id,
+        'purchase_date' => '2026-07-20',
+    ]);
+
     $closing = $this->action->handle($this->shop, '2026-07-20', '5000');
 
     expect($closing->credit_purchase_today)->toBe('0.00')

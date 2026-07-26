@@ -6,6 +6,7 @@ use App\Enums\AccountType;
 use App\Enums\TransactionDirection;
 use App\Models\Account;
 use App\Models\Order;
+use App\Models\Purchase;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 
@@ -52,11 +53,8 @@ class DailyCashFigures
             'net_amount' => $net,
             'expected_closing' => bcadd($opening, $net, 2),
             'total_receivable' => $this->receivableFor($shopId),
-
-            // Both need phase 5 tables. purchases and supplier_ledger do not
-            // exist yet, so these are honestly zero rather than quietly wrong.
-            'credit_purchase_today' => '0.00',
-            'total_payable' => '0.00',
+            'credit_purchase_today' => $this->creditPurchasesOn($shopId, $date),
+            'total_payable' => $this->payableFor($shopId),
         ];
     }
 
@@ -130,6 +128,43 @@ class DailyCashFigures
         $total = Order::query()
             ->where('shop_id', $shopId)
             ->open()
+            ->sum('due_amount');
+
+        return number_format((float) $total, 2, '.', '');
+    }
+
+    /**
+     * What was taken on credit today: the part of today's challans that was
+     * not settled at the counter.
+     *
+     * Goods that arrived without money leaving are invisible to the drawer
+     * arithmetic above, which is exactly why the figure sits beside it. A
+     * night that looks quiet in cash can still have added to what we owe.
+     */
+    private function creditPurchasesOn(int $shopId, string $date): string
+    {
+        $total = Purchase::query()
+            ->where('purchase_date', $date)
+            ->where('due_amount', '>', 0)
+            ->where(fn ($query) => $query->where('shop_id', $shopId)->orWhereNull('shop_id'))
+            ->sum('due_amount');
+
+        return number_format((float) $total, 2, '.', '');
+    }
+
+    /**
+     * What we still owe suppliers in total, from the purchases themselves.
+     *
+     * Read from purchases rather than supplier_ledger on purpose: this is the
+     * figure the aging list totals to, invoice by invoice. The ledger balance
+     * is the same money seen from the supplier's side and can differ by an
+     * on-account payment that has not been allocated to a challan yet.
+     */
+    private function payableFor(int $shopId): string
+    {
+        $total = Purchase::query()
+            ->where('due_amount', '>', 0)
+            ->where(fn ($query) => $query->where('shop_id', $shopId)->orWhereNull('shop_id'))
             ->sum('due_amount');
 
         return number_format((float) $total, 2, '.', '');
