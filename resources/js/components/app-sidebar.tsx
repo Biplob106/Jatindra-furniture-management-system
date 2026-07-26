@@ -6,6 +6,7 @@ import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
     Banknote,
+    Boxes,
     CalendarCheck,
     CalendarClock,
     ClipboardList,
@@ -74,6 +75,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/suppliers',
         icon: Truck,
         permission: 'suppliers.view',
+    },
+    {
+        title: 'মালামাল',
+        url: '/materials',
+        icon: Boxes,
+        permission: 'materials.view',
     },
     {
         title: 'কর্মী',

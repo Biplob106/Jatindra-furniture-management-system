@@ -8,6 +8,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemWorkController;
 use App\Http\Controllers\OrderPhotoController;
@@ -121,6 +122,7 @@ Route::middleware(['auth'])->group(function () {
         'expense-categories' => [ExpenseCategoryController::class, 'expense_categories'],
         'product-categories' => [ProductCategoryController::class, 'product_categories'],
         'suppliers' => [SupplierController::class, 'suppliers'],
+        'materials' => [MaterialController::class, 'materials'],
     ];
 
     foreach ($masterData as $uri => [$controller, $permission]) {

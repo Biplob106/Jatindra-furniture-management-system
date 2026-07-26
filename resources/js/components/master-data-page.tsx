@@ -23,6 +23,8 @@ interface MasterDataPageProps<T> {
     rowKey: (row: T) => string | number;
     /** Confirmation text shown before deleting. */
     deleteConfirm: (row: T) => string;
+    /** Anything the list needs above the table, such as a low stock warning. */
+    banner?: ReactNode;
 }
 
 /**
@@ -45,6 +47,7 @@ export function MasterDataPage<T>({
     canManage,
     rowKey,
     deleteConfirm,
+    banner,
 }: MasterDataPageProps<T>) {
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'ড্যাশবোর্ড', href: '/dashboard' },
@@ -93,6 +96,8 @@ export function MasterDataPage<T>({
                 </div>
 
                 <FlashMessages />
+
+                {banner}
 
                 <DataTable
                     rows={rows}
