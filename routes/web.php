@@ -13,6 +13,7 @@ use App\Http\Controllers\OrderItemWorkController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TradeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -119,6 +120,7 @@ Route::middleware(['auth'])->group(function () {
         'accounts' => [AccountController::class, 'accounts'],
         'expense-categories' => [ExpenseCategoryController::class, 'expense_categories'],
         'product-categories' => [ProductCategoryController::class, 'product_categories'],
+        'suppliers' => [SupplierController::class, 'suppliers'],
     ];
 
     foreach ($masterData as $uri => [$controller, $permission]) {

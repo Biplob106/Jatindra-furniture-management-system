@@ -16,6 +16,7 @@ import {
     Receipt,
     Shapes,
     Store,
+    Truck,
     UserRound,
     Users,
     Wallet,
@@ -67,6 +68,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/customers',
         icon: UserRound,
         permission: 'customers.view',
+    },
+    {
+        title: 'সরবরাহকারী',
+        url: '/suppliers',
+        icon: Truck,
+        permission: 'suppliers.view',
     },
     {
         title: 'কর্মী',
