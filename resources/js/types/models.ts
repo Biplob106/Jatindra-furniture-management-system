@@ -4,7 +4,19 @@
  * server; never parseFloat them for comparison or arithmetic.
  */
 
-import type { AccountType, AttendanceStatus, CustomerType, LedgerDirection, LedgerEntryType, PaymentMethod, WageType } from './enums';
+import type {
+    AccountType,
+    AttendanceStatus,
+    CustomerType,
+    LedgerDirection,
+    LedgerEntryType,
+    MaterialCategory,
+    MaterialUnit,
+    PaymentMethod,
+    SupplierLedgerEntryType,
+    SupplierType,
+    WageType,
+} from './enums';
 
 export interface Shop {
     id: number;
@@ -129,4 +141,43 @@ export interface ProductCategory {
     deleted_at: string | null;
     parent?: ProductCategory;
     children?: ProductCategory[];
+}
+
+export interface Supplier {
+    id: number;
+    name: string;
+    business_name: string | null;
+    phone: string | null;
+    address: string | null;
+    supplier_type: SupplierType;
+    opening_due: string;
+    credit_limit: string;
+    default_credit_days: number;
+    is_active: boolean;
+    deleted_at: string | null;
+}
+
+export interface Material {
+    id: number;
+    name: string;
+    category: MaterialCategory;
+    unit: MaterialUnit;
+    current_stock: string;
+    avg_cost: string;
+    min_stock: string;
+    is_active: boolean;
+}
+
+export interface SupplierLedgerEntry {
+    id: number;
+    supplier_id: number;
+    entry_date: string;
+    type: SupplierLedgerEntryType;
+    direction: LedgerDirection;
+    amount: string;
+    reference_type: string | null;
+    reference_id: number | null;
+    note: string | null;
+    created_by: number | null;
+    created_at: string;
 }

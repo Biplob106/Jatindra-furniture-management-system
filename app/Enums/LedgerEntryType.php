@@ -10,7 +10,7 @@ namespace App\Enums;
  * moving the wrong way. `opening` and `adjustment` are the two that genuinely
  * go either way and must be told which.
  */
-enum LedgerEntryType: string
+enum LedgerEntryType: string implements LedgerEntryKind
 {
     // Earned by the worker, so the shop owes more.
     case WageEarned = 'wage_earned';

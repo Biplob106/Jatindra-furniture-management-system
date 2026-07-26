@@ -133,3 +133,89 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
     nagad: 'নগদ',
     bank: 'ব্যাংক',
 };
+
+export type SupplierType = 'wood' | 'hardware' | 'paint' | 'transport' | 'other';
+
+export const supplierTypeLabels: Record<SupplierType, string> = {
+    wood: 'কাঠ',
+    hardware: 'হার্ডওয়্যার',
+    paint: 'রং',
+    transport: 'পরিবহন',
+    other: 'অন্যান্য',
+};
+
+export type MaterialCategory = 'wood' | 'board' | 'hardware' | 'paint' | 'polish' | 'glue' | 'other';
+
+export const materialCategoryLabels: Record<MaterialCategory, string> = {
+    wood: 'কাঠ',
+    board: 'বোর্ড',
+    hardware: 'হার্ডওয়্যার',
+    paint: 'রং',
+    polish: 'পলিশ',
+    glue: 'আঠা',
+    other: 'অন্যান্য',
+};
+
+export type MaterialUnit = 'cft' | 'sqft' | 'piece' | 'kg' | 'litre' | 'bundle' | 'set';
+
+export const materialUnitLabels: Record<MaterialUnit, string> = {
+    cft: 'ঘনফুট',
+    sqft: 'বর্গফুট',
+    piece: 'পিস',
+    kg: 'কেজি',
+    litre: 'লিটার',
+    bundle: 'বান্ডিল',
+    set: 'সেট',
+};
+
+export type PurchasePaymentType = 'cash' | 'credit' | 'partial';
+
+export const purchasePaymentTypeLabels: Record<PurchasePaymentType, string> = {
+    cash: 'নগদ',
+    credit: 'বাকি',
+    partial: 'আংশিক',
+};
+
+export type PurchaseStatus = 'pending' | 'partial' | 'paid' | 'returned';
+
+export const purchaseStatusLabels: Record<PurchaseStatus, string> = {
+    pending: 'বাকি',
+    partial: 'আংশিক পরিশোধ',
+    paid: 'পরিশোধিত',
+    returned: 'ফেরত',
+};
+
+export type PurchaseItemType = 'material' | 'product';
+
+export const purchaseItemTypeLabels: Record<PurchaseItemType, string> = {
+    material: 'কাঁচামাল',
+    product: 'পণ্য',
+};
+
+export type SupplierLedgerEntryType = 'opening' | 'purchase' | 'payment' | 'return' | 'discount' | 'adjustment';
+
+export const supplierLedgerEntryTypeLabels: Record<SupplierLedgerEntryType, string> = {
+    opening: 'প্রারম্ভিক',
+    purchase: 'ক্রয়',
+    payment: 'পরিশোধ',
+    return: 'ফেরত',
+    discount: 'ছাড়',
+    adjustment: 'সংশোধন',
+};
+
+export type MaterialMovementType = 'in' | 'out' | 'wastage' | 'return' | 'adjustment';
+
+export const materialMovementTypeLabels: Record<MaterialMovementType, string> = {
+    in: 'জমা',
+    out: 'ব্যবহার',
+    wastage: 'নষ্ট',
+    return: 'ফেরত',
+    adjustment: 'সংশোধন',
+};
+
+export type PartyType = 'supplier' | 'customer';
+
+export const partyTypeLabels: Record<PartyType, string> = {
+    supplier: 'সরবরাহকারী',
+    customer: 'গ্রাহক',
+};

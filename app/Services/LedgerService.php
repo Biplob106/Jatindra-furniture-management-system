@@ -3,23 +3,28 @@
 namespace App\Services;
 
 use App\Enums\LedgerDirection;
+use App\Enums\LedgerEntryKind;
 use App\Enums\LedgerEntryType;
 use App\Enums\PaymentMethod;
+use App\Enums\SupplierLedgerEntryType;
 use App\Models\Employee;
 use App\Models\EmployeeLedger;
+use App\Models\Supplier;
+use App\Models\SupplierLedger;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * The only thing that writes employee_ledger.
+ * The only thing that writes employee_ledger and supplier_ledger.
  *
  * Direction comes from the entry type rather than the caller, so a wage cannot
  * be recorded as a debit by accident. `opening` and `adjustment` are the two
  * types that genuinely go either way and must be told which.
  *
  * Balances are always computed as SUM(credit) - SUM(debit) in SQL. There is no
- * running balance column and there must never be one.
+ * running balance column and there must never be one. Positive means the shop
+ * owes: the worker on one ledger, the supplier on the other.
  */
 class LedgerService
 {
@@ -137,7 +142,81 @@ class LedgerService
             ->all();
     }
 
-    private function resolveDirection(LedgerEntryType $type, ?LedgerDirection $given): LedgerDirection
+    /**
+     * Records one supplier ledger row.
+     *
+     * A purchase is a credit, paying it down is a debit, and positive means we
+     * owe them. Inverting that is silently wrong money, so the direction comes
+     * from the type here too.
+     *
+     * @param  string  $amount  Money as a string. Never a float.
+     */
+    public function recordSupplier(
+        Supplier $supplier,
+        SupplierLedgerEntryType $type,
+        string $amount,
+        string $entryDate,
+        ?LedgerDirection $direction = null,
+        ?Model $reference = null,
+        ?string $note = null,
+        ?int $createdBy = null,
+    ): SupplierLedger {
+        $direction = $this->resolveDirection($type, $direction);
+
+        if (bccomp($amount, '0.00', 2) < 0) {
+            throw new InvalidArgumentException('Ledger amounts are never negative. Use the direction instead.');
+        }
+
+        return SupplierLedger::create([
+            'supplier_id' => $supplier->id,
+            'entry_date' => $entryDate,
+            'type' => $type,
+            'direction' => $direction,
+            'amount' => $amount,
+            'reference_type' => $reference ? $reference::class : null,
+            'reference_id' => $reference?->getKey(),
+            'note' => $note,
+            'created_by' => $createdBy,
+        ]);
+    }
+
+    /**
+     * SUM(credit) - SUM(debit) as a string. Positive means we owe the
+     * supplier. Computed in SQL, never accumulated in PHP.
+     */
+    public function supplierBalanceFor(Supplier $supplier): string
+    {
+        $balance = SupplierLedger::query()
+            ->where('supplier_id', $supplier->id)
+            ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance")
+            ->value('balance');
+
+        return number_format((float) $balance, 2, '.', '');
+    }
+
+    /**
+     * Balances for many suppliers at once, keyed by supplier id, for the
+     * payable list. Avoids a query per row.
+     *
+     * @param  list<int>  $supplierIds
+     * @return array<int, string>
+     */
+    public function supplierBalancesFor(array $supplierIds): array
+    {
+        if ($supplierIds === []) {
+            return [];
+        }
+
+        return SupplierLedger::query()
+            ->whereIn('supplier_id', $supplierIds)
+            ->groupBy('supplier_id')
+            ->selectRaw("supplier_id, COALESCE(SUM(CASE WHEN direction = 'credit' THEN amount ELSE -amount END), 0) AS balance")
+            ->pluck('balance', 'supplier_id')
+            ->map(fn ($balance) => number_format((float) $balance, 2, '.', ''))
+            ->all();
+    }
+
+    private function resolveDirection(LedgerEntryKind $type, ?LedgerDirection $given): LedgerDirection
     {
         $natural = $type->direction();
 
