@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DailyClosingController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
@@ -28,9 +29,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     // Staff accounts. There is no public registration; this is the only way in.
     Route::middleware('permission:users.manage')->group(function () {
