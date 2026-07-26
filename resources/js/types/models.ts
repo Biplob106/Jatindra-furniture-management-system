@@ -181,3 +181,21 @@ export interface SupplierLedgerEntry {
     created_by: number | null;
     created_at: string;
 }
+
+export interface Product {
+    id: number;
+    sku: string;
+    name: string;
+    category_id: number | null;
+    description: string | null;
+    wood_type: string | null;
+    size_label: string | null;
+    cost_price: string;
+    sale_price: string;
+    current_stock: string;
+    min_stock: string;
+    shop_id: number | null;
+    is_active: boolean;
+    deleted_at: string | null;
+    category?: ProductCategory;
+}

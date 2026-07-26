@@ -219,3 +219,50 @@ export const partyTypeLabels: Record<PartyType, string> = {
     supplier: 'সরবরাহকারী',
     customer: 'গ্রাহক',
 };
+
+export type StockMovementType =
+    | 'production_in'
+    | 'purchase_in'
+    | 'sale_out'
+    | 'order_out'
+    | 'transfer_in'
+    | 'transfer_out'
+    | 'damage'
+    | 'adjustment';
+
+export const stockMovementTypeLabels: Record<StockMovementType, string> = {
+    production_in: 'তৈরি হয়েছে',
+    purchase_in: 'কেনা হয়েছে',
+    sale_out: 'বিক্রি',
+    order_out: 'অর্ডারে গেছে',
+    transfer_in: 'দোকানে এসেছে',
+    transfer_out: 'অন্য দোকানে গেছে',
+    damage: 'নষ্ট',
+    adjustment: 'সংশোধন',
+};
+
+export type CncRateType = 'per_sqft' | 'per_piece' | 'per_hour' | 'fixed';
+
+export const cncRateTypeLabels: Record<CncRateType, string> = {
+    per_sqft: 'প্রতি বর্গফুট',
+    per_piece: 'প্রতি পিস',
+    per_hour: 'প্রতি ঘণ্টা',
+    fixed: 'একদর',
+};
+
+export type CncJobStatus = 'pending' | 'running' | 'completed' | 'delivered' | 'cancelled';
+
+export const cncJobStatusLabels: Record<CncJobStatus, string> = {
+    pending: 'অপেক্ষায়',
+    running: 'মেশিনে চলছে',
+    completed: 'কাজ শেষ',
+    delivered: 'ডেলিভারি হয়েছে',
+    cancelled: 'বাতিল',
+};
+
+export type CncMaterialBy = 'customer' | 'shop';
+
+export const cncMaterialByLabels: Record<CncMaterialBy, string> = {
+    customer: 'কাস্টমারের মাল',
+    shop: 'দোকানের মাল',
+};
