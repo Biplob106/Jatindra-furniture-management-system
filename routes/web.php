@@ -13,6 +13,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemWorkController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TradeController;
@@ -79,6 +80,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show'])
         ->middleware('permission:orders.view')
         ->name('orders.show');
+
+    // Buying. Reading the challan book and writing one in are separate
+    // permissions: a storekeeper records what arrived, an accountant reads it.
+    Route::get('purchases', [PurchaseController::class, 'index'])
+        ->middleware('permission:purchases.view')
+        ->name('purchases.index');
+
+    Route::middleware('permission:purchases.record')->group(function () {
+        Route::get('purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
+        Route::post('purchases', [PurchaseController::class, 'store'])->name('purchases.store');
+    });
 
     // The nightly reconciliation.
     Route::get('daily-closing', [DailyClosingController::class, 'index'])

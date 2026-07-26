@@ -14,6 +14,7 @@ import {
     HandCoins,
     HardHat,
     LayoutGrid,
+    PackagePlus,
     Receipt,
     Shapes,
     Store,
@@ -51,6 +52,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/daily-closing',
         icon: CalendarClock,
         permission: 'daily_closing.view',
+    },
+    {
+        title: 'কেনাকাটা',
+        url: '/purchases',
+        icon: PackagePlus,
+        permission: 'purchases.view',
     },
     {
         title: 'খরচ',

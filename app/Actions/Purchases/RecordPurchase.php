@@ -274,9 +274,10 @@ class RecordPurchase
     private function priceLines(array $items): array
     {
         return array_map(function (array $row) {
-            $type = ($row['item_type'] ?? PurchaseItemType::Material) instanceof PurchaseItemType
-                ? $row['item_type']
-                : PurchaseItemType::from($row['item_type']);
+            // Material unless told otherwise: the screen only offers materials
+            // until phase 6 brings products.
+            $given = $row['item_type'] ?? PurchaseItemType::Material;
+            $type = $given instanceof PurchaseItemType ? $given : PurchaseItemType::from($given);
 
             if ($type === PurchaseItemType::Product) {
                 throw new InvalidArgumentException('Readymade product lines need the products table, which phase 6 adds.');
