@@ -14,6 +14,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemWorkController;
 use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\StockController;
@@ -163,6 +164,7 @@ Route::middleware(['auth'])->group(function () {
         'product-categories' => [ProductCategoryController::class, 'product_categories'],
         'suppliers' => [SupplierController::class, 'suppliers'],
         'materials' => [MaterialController::class, 'materials'],
+        'products' => [ProductController::class, 'products'],
     ];
 
     foreach ($masterData as $uri => [$controller, $permission]) {

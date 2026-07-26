@@ -5,6 +5,7 @@ import { usePermission } from '@/hooks/use-permission';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
+    Armchair,
     Banknote,
     Boxes,
     CalendarCheck,
@@ -102,6 +103,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/stock',
         icon: Warehouse,
         permission: 'stock.view',
+    },
+    {
+        title: 'পণ্য',
+        url: '/products',
+        icon: Armchair,
+        permission: 'products.view',
     },
     {
         title: 'কর্মী',
