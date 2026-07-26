@@ -7,6 +7,7 @@ import { Link } from '@inertiajs/react';
 import {
     Banknote,
     CalendarCheck,
+    CalendarClock,
     ClipboardList,
     Hammer,
     HandCoins,
@@ -42,6 +43,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/attendance',
         icon: CalendarCheck,
         permission: 'attendance.view',
+    },
+    {
+        title: 'দিনের হিসাব',
+        url: '/daily-closing',
+        icon: CalendarClock,
+        permission: 'daily_closing.view',
     },
     {
         title: 'খরচ',

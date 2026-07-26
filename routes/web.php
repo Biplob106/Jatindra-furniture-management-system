@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DailyClosingController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -76,6 +77,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show'])
         ->middleware('permission:orders.view')
         ->name('orders.show');
+
+    // The nightly reconciliation.
+    Route::get('daily-closing', [DailyClosingController::class, 'index'])
+        ->middleware('permission:daily_closing.view')
+        ->name('daily-closing.index');
+
+    Route::post('daily-closing', [DailyClosingController::class, 'store'])
+        ->middleware('permission:daily_closing.run')
+        ->name('daily-closing.store');
 
     // Shop running costs. No edit or delete: an expense has a cash row behind
     // it, and changing one without the other desyncs the drawer from the books.
