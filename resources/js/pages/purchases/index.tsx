@@ -53,12 +53,12 @@ export default function PurchasesIndex({ purchases, search, status, statuses, to
         {
             header: 'চালান',
             cell: (purchase) => (
-                <div className="flex flex-col">
+                <Link href={route('purchases.show', purchase.id)} className="flex flex-col hover:underline">
                     <span className="font-medium">{toBengaliDigits(purchase.purchase_no)}</span>
                     <span className="text-muted-foreground text-sm">
                         {purchase.supplier.business_name ?? purchase.supplier.name}
                     </span>
-                </div>
+                </Link>
             ),
         },
         {

@@ -9,7 +9,9 @@ use App\Enums\PurchaseStatus;
 use App\Http\Requests\Purchases\PurchaseRequest;
 use App\Models\Account;
 use App\Models\Material;
+use App\Models\PaymentAllocation;
 use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Models\Shop;
 use App\Models\Supplier;
 use Carbon\CarbonImmutable;
@@ -126,6 +128,93 @@ class PurchaseController extends Controller
             'defaultShopId' => $request->user()->shop_id,
             'today' => CarbonImmutable::today()->toDateString(),
         ]);
+    }
+
+    /**
+     * One challan in full: what arrived, what it cost, and every payment that
+     * has been put against it since.
+     */
+    public function show(Purchase $purchase): Response
+    {
+        $purchase->load(['supplier:id,name,business_name,phone', 'shop:id,name', 'items', 'creator:id,name']);
+
+        // Material names for the lines. One query rather than one per line,
+        // and it stays correct when a line points at a product later.
+        $materials = Material::query()
+            ->whereIn('id', $purchase->items->pluck('item_id'))
+            ->get(['id', 'name', 'unit'])
+            ->keyBy('id');
+
+        return Inertia::render('purchases/show', [
+            'purchase' => [
+                'id' => $purchase->id,
+                'purchase_no' => $purchase->purchase_no,
+                'reference_no' => $purchase->reference_no,
+                'purchase_date' => $purchase->purchase_date->toDateString(),
+                'payment_due_date' => $purchase->payment_due_date?->toDateString(),
+                'payment_type' => $purchase->payment_type->value,
+                'status' => $purchase->status->value,
+                'subtotal' => $purchase->subtotal,
+                'transport_cost' => $purchase->transport_cost,
+                'discount' => $purchase->discount,
+                'total_amount' => $purchase->total_amount,
+                'paid_amount' => $purchase->paid_amount,
+                'due_amount' => $purchase->due_amount,
+                'note' => $purchase->note,
+                'shop' => $purchase->shop?->name,
+                'created_by' => $purchase->creator?->name,
+                'supplier' => [
+                    'id' => $purchase->supplier->id,
+                    'name' => $purchase->supplier->name,
+                    'business_name' => $purchase->supplier->business_name,
+                    'phone' => $purchase->supplier->phone,
+                ],
+            ],
+            'items' => $purchase->items
+                ->map(fn (PurchaseItem $item) => [
+                    'id' => $item->id,
+                    'name' => $materials[$item->item_id]->name ?? '—',
+                    'item_type' => $item->item_type->value,
+                    'quantity' => $item->quantity,
+                    'unit' => $item->unit,
+                    'unit_price' => $item->unit_price,
+                    'line_total' => $item->line_total,
+                    'note' => $item->note,
+                ])
+                ->all(),
+            'payments' => $this->paymentsFor($purchase),
+        ]);
+    }
+
+    /**
+     * What has been paid against this challan, newest first. A single handover
+     * may have settled several challans, so the payment's own total is shown
+     * beside what landed here.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function paymentsFor(Purchase $purchase): array
+    {
+        return PaymentAllocation::query()
+            ->with('payment.account:id,name')
+            ->where('allocatable_type', Purchase::class)
+            ->where('allocatable_id', $purchase->id)
+            ->get()
+            ->sortByDesc(fn (PaymentAllocation $allocation) => [
+                $allocation->payment->payment_date->toDateString(),
+                $allocation->id,
+            ])
+            ->map(fn (PaymentAllocation $allocation) => [
+                'id' => $allocation->id,
+                'allocated_amount' => $allocation->allocated_amount,
+                'payment_date' => $allocation->payment->payment_date->toDateString(),
+                'payment_total' => $allocation->payment->amount,
+                'payment_method' => $allocation->payment->payment_method->value,
+                'reference_no' => $allocation->payment->reference_no,
+                'account' => $allocation->payment->account?->name,
+            ])
+            ->values()
+            ->all();
     }
 
     public function store(PurchaseRequest $request, RecordPurchase $record): RedirectResponse

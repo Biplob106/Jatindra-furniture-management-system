@@ -99,10 +99,15 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:purchases.view')
         ->name('purchases.index');
 
+    // Before the {purchase} route, or "create" is read as an id.
     Route::middleware('permission:purchases.record')->group(function () {
         Route::get('purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
         Route::post('purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     });
+
+    Route::get('purchases/{purchase}', [PurchaseController::class, 'show'])
+        ->middleware('permission:purchases.view')
+        ->name('purchases.show');
 
     // The nightly reconciliation.
     Route::get('daily-closing', [DailyClosingController::class, 'index'])
