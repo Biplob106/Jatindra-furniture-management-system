@@ -22,6 +22,7 @@ import {
     Truck,
     UserRound,
     Users,
+    Warehouse,
     Wallet,
 } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -95,6 +96,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/materials',
         icon: Boxes,
         permission: 'materials.view',
+    },
+    {
+        title: 'গুদাম',
+        url: '/stock',
+        icon: Warehouse,
+        permission: 'stock.view',
     },
     {
         title: 'কর্মী',

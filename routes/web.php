@@ -15,6 +15,7 @@ use App\Http\Controllers\OrderPhotoController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierLedgerController;
 use App\Http\Controllers\TradeController;
@@ -81,6 +82,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('orders/{order}', [OrderController::class, 'show'])
         ->middleware('permission:orders.view')
         ->name('orders.show');
+
+    // The store room. Reading the movement log and moving stock are separate
+    // permissions: a manager sees what was consumed, a storekeeper moves it.
+    Route::get('stock', [StockController::class, 'index'])
+        ->middleware('permission:stock.view')
+        ->name('stock.index');
+
+    Route::middleware('permission:stock.adjust')->group(function () {
+        Route::post('stock/issue', [StockController::class, 'issue'])->name('stock.issue');
+        Route::post('stock/count', [StockController::class, 'count'])->name('stock.count');
+    });
 
     // Supplier accounts. Reading what is owed and paying it are separate
     // permissions: a storekeeper never hands money over.
