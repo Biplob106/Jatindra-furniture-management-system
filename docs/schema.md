@@ -224,7 +224,6 @@ CREATE TABLE order_status_logs (
 CREATE TABLE trades (
   id                 BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   name               VARCHAR(100) NOT NULL,   -- বার্নিশ, নকশা, প্লেন কাঠ, সিএনসি, হেলপার
-  default_daily_rate DECIMAL(10,2) DEFAULT 0,
   is_active          BOOLEAN DEFAULT TRUE,
   deleted_at         TIMESTAMP NULL           -- soft delete, master data
 );

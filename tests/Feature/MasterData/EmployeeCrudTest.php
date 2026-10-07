@@ -12,7 +12,7 @@ beforeEach(function () {
 
     $this->owner = User::factory()->create();
     $this->owner->assignRole(Role::Owner->value);
-    $this->trade = Trade::factory()->create(['default_daily_rate' => 700]);
+    $this->trade = Trade::factory()->create();
 });
 
 function employeePayload(array $overrides = []): array

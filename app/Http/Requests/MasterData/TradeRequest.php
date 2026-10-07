@@ -18,7 +18,6 @@ class TradeRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'default_daily_rate' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'is_active' => ['required', 'boolean'],
         ];
     }

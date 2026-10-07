@@ -53,7 +53,6 @@ export interface Customer {
 export interface Trade {
     id: number;
     name: string;
-    default_daily_rate: string;
     is_active: boolean;
     deleted_at: string | null;
 }

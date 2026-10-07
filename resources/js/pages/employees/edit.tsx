@@ -4,12 +4,12 @@ import { MasterDataFormPage } from '@/components/master-data-page';
 import type { Employee } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { EmployeeFormData, EmployeeFormFields, TradeOption } from './employee-form';
+import { EmployeeFormData, EmployeeFormFields } from './employee-form';
 
 interface Props {
     employee: Employee;
     wageTypes: Option[];
-    trades: TradeOption[];
+    trades: Option[];
     shops: Option[];
 }
 

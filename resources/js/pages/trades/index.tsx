@@ -17,7 +17,6 @@ interface Props {
 export default function TradesIndex({ trades, search, canManage }: Props) {
     const columns: Column<TradeRow>[] = [
         { header: 'কাজের ধরন', cell: (trade) => <span className="font-medium">{trade.name}</span> },
-        { header: 'দৈনিক হার', cell: (trade) => `৳ ${toBengaliDigits(trade.default_daily_rate)}` },
         { header: 'কর্মী', cell: (trade) => toBengaliDigits(trade.employees_count), hideOnMobile: true },
         {
             header: 'অবস্থা',

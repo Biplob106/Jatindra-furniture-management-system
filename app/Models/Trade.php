@@ -18,14 +18,12 @@ class Trade extends Model
 
     protected $fillable = [
         'name',
-        'default_daily_rate',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'default_daily_rate' => 'decimal:2',
             'is_active' => 'boolean',
         ];
     }

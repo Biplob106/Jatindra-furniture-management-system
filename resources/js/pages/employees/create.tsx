@@ -2,11 +2,11 @@ import { Option } from '@/components/form-field';
 import { MasterDataFormPage } from '@/components/master-data-page';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
-import { EmployeeFormData, EmployeeFormFields, TradeOption } from './employee-form';
+import { EmployeeFormData, EmployeeFormFields } from './employee-form';
 
 interface Props {
     wageTypes: Option[];
-    trades: TradeOption[];
+    trades: Option[];
     shops: Option[];
     nextCode: string;
 }

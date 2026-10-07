@@ -6,13 +6,11 @@ import { Label } from '@/components/ui/label';
 export interface TradeFormData {
     [key: string]: string | boolean;
     name: string;
-    default_daily_rate: string;
     is_active: boolean;
 }
 
 export const emptyTradeForm: TradeFormData = {
     name: '',
-    default_daily_rate: '0',
     is_active: true,
 };
 
@@ -35,18 +33,6 @@ export function TradeFormFields({ data, setData, errors, processing }: Props) {
                 required
                 autoFocus
                 placeholder="যেমন: বার্নিশ"
-            />
-
-            <TextField
-                id="default_daily_rate"
-                label="দৈনিক হার"
-                type="number"
-                numeric
-                value={data.default_daily_rate}
-                onChange={(v) => setData('default_daily_rate', v)}
-                error={errors.default_daily_rate}
-                required
-                hint="নতুন কর্মী যোগ করার সময় এই হার আগে থেকে বসানো থাকবে"
             />
 
             <div className="flex items-center gap-3">

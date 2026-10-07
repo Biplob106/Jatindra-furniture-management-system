@@ -3,10 +3,6 @@ import { StickySaveBar } from '@/components/sticky-save-bar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
-export interface TradeOption extends Option {
-    defaultDailyRate: string;
-}
-
 export interface EmployeeFormData {
     [key: string]: string | boolean;
     employee_code: string;
@@ -32,26 +28,12 @@ interface Props {
     errors: Partial<Record<string, string>>;
     processing: boolean;
     wageTypes: Option[];
-    trades: TradeOption[];
+    trades: Option[];
     shops: Option[];
     showOpeningAdvance: boolean;
 }
 
 export function EmployeeFormFields({ data, setData, errors, processing, wageTypes, trades, shops, showOpeningAdvance }: Props) {
-    /**
-     * Picking a trade fills in its default rate, but only when the field is
-     * still empty or zero, so an edited rate is never overwritten.
-     */
-    const onTradeChange = (value: string) => {
-        setData('trade_id', value);
-
-        const trade = trades.find((t) => String(t.value) === value);
-
-        if (trade && data.wage_type === 'daily' && (data.daily_rate === '' || Number(data.daily_rate) === 0)) {
-            setData('daily_rate', trade.defaultDailyRate);
-        }
-    };
-
     return (
         <>
             <TextField id="name" label="নাম" value={data.name} onChange={(v) => setData('name', v)} error={errors.name} required autoFocus />
@@ -79,7 +61,7 @@ export function EmployeeFormFields({ data, setData, errors, processing, wageType
                 id="trade_id"
                 label="কাজের ধরন"
                 value={data.trade_id}
-                onChange={onTradeChange}
+                onChange={(v) => setData('trade_id', v)}
                 options={trades}
                 error={errors.trade_id}
                 emptyLabel="নির্ধারিত নয়"

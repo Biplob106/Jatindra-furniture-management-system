@@ -17,7 +17,6 @@ class TradeFactory extends Factory
     {
         return [
             'name' => fake()->unique()->randomElement(['বার্নিশ', 'নকশা', 'প্লেন কাঠ', 'সিএনসি', 'হেলপার']),
-            'default_daily_rate' => fake()->randomFloat(2, 400, 1200),
             'is_active' => true,
         ];
     }

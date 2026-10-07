@@ -24,7 +24,7 @@ beforeEach(function () {
  */
 dataset('resources', [
     'shops' => ['shops', Shop::class, ['name' => 'নতুন দোকান', 'monthly_rent' => 12000, 'is_active' => true]],
-    'trades' => ['trades', Trade::class, ['name' => 'পালিশ', 'default_daily_rate' => 650, 'is_active' => true]],
+    'trades' => ['trades', Trade::class, ['name' => 'পালিশ', 'is_active' => true]],
     'expense-categories' => ['expense-categories', ExpenseCategory::class, ['name' => 'গ্যাস বিল', 'is_recurring' => true, 'is_active' => true]],
     'product-categories' => ['product-categories', ProductCategory::class, ['name' => 'শোকেস', 'is_active' => true]],
 ]);

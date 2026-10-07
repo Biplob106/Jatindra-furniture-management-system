@@ -11,7 +11,6 @@ interface Props {
 export default function EditTrade({ trade }: Props) {
     const { data, setData, put, processing, errors } = useForm<TradeFormData>({
         name: trade.name,
-        default_daily_rate: trade.default_daily_rate,
         is_active: trade.is_active,
     });
 

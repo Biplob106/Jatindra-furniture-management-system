@@ -91,13 +91,8 @@ class EmployeeController extends Controller
             'trades' => Trade::query()
                 ->where('is_active', true)
                 ->orderBy('name')
-                ->get(['id', 'name', 'default_daily_rate'])
-                ->map(fn (Trade $trade) => [
-                    'value' => $trade->id,
-                    'label' => $trade->name,
-                    // Lets the form prefill the rate when a trade is picked.
-                    'defaultDailyRate' => $trade->default_daily_rate,
-                ])
+                ->get(['id', 'name'])
+                ->map(fn (Trade $trade) => ['value' => $trade->id, 'label' => $trade->name])
                 ->all(),
             'shops' => Shop::query()
                 ->where('is_active', true)
