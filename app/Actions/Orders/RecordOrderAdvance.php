@@ -9,6 +9,7 @@ use App\Models\Account;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Services\CashService;
+use App\Support\BengaliNumber;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use RuntimeException;
@@ -59,7 +60,7 @@ class RecordOrderAdvance
             $due = bcsub((string) $locked->total_amount, $this->paidFor($locked), 2);
 
             if (bccomp($amount, $due, 2) > 0) {
-                throw new RuntimeException("বাকি ৳ {$due} এর বেশি টাকা নেওয়া যাবে না।");
+                throw new RuntimeException('বাকি ৳ '.BengaliNumber::money($due).' এর বেশি টাকা নেওয়া যাবে না।');
             }
 
             $transaction = $this->cash->record(

@@ -490,7 +490,7 @@ export default function ShowOrder({
                             <div className="mt-1 flex justify-between border-t pt-2 font-semibold">
                                 <span>লাভ</span>
                                 <span className={Number(profit.gross_profit) < 0 ? 'text-destructive' : 'text-emerald-600'}>
-                                    <Money amount={profit.gross_profit} /> ({toBengaliDigits(profit.margin_percent)}%)
+                                    <Money amount={profit.gross_profit} /> ({formatNumber(profit.margin_percent)}%)
                                 </span>
                             </div>
                         </div>

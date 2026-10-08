@@ -1,5 +1,6 @@
 import { Option, SelectField, TextField } from '@/components/form-field';
 import { StickySaveBar } from '@/components/sticky-save-bar';
+import { formatMoney } from '@/lib/number-format';
 
 export interface ProductFormData {
     [key: string]: string;
@@ -122,7 +123,7 @@ export function ProductFormFields({ data, setData, errors, processing, categorie
                 being typed rather than discovered later on a report. */}
             {margin !== 0 && (
                 <p className={margin < 0 ? 'text-destructive text-sm' : 'text-muted-foreground text-sm'}>
-                    {margin < 0 ? 'বিক্রয় দর খরচের চেয়ে কম' : `প্রতি পিসে লাভ ৳ ${margin.toFixed(2)}`}
+                    {margin < 0 ? 'বিক্রয় দর খরচের চেয়ে কম' : `প্রতি পিসে লাভ ৳ ${formatMoney(margin.toFixed(2))}`}
                 </p>
             )}
 

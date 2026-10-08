@@ -84,6 +84,11 @@ it('refuses to take more than is owed', function () {
         ->and($this->account->fresh()->current_balance)->toBe('0.00');
 });
 
+it('says what is still due in Bengali figures the counter can read', function () {
+    expect(fn () => $this->action->handle($this->order, '50000.01', $this->account, '2026-07-20'))
+        ->toThrow(RuntimeException::class, 'বাকি ৳ ৫০,০০০ এর বেশি টাকা নেওয়া যাবে না।');
+});
+
 it('refuses to take more than what is left after earlier payments', function () {
     $this->action->handle($this->order, '45000.00', $this->account, '2026-07-20');
 

@@ -8,7 +8,7 @@
 
 @theme {
     --font-sans:
-        'Hind Siliguri', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Noto Sans Bengali', 'Hind Siliguri', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -196,11 +196,11 @@
 }
 
 .jt-display {
-    font-family: 'Baloo Da 2', 'Hind Siliguri', sans-serif;
+    font-family: 'Noto Sans Bengali', 'Baloo Da 2', 'Hind Siliguri', sans-serif;
 }
 
 .jt-label {
-    font-family: 'Anek Bangla', 'Hind Siliguri', sans-serif;
+    font-family: 'Noto Sans Bengali', 'Anek Bangla', 'Hind Siliguri', sans-serif;
     letter-spacing: 0.14em;
 }
 

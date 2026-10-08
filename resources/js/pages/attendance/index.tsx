@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
-import { formatMoney } from '@/lib/number-format';
+import { formatMoney, formatNumber } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import type { AttendanceStatus, WageType } from '@/types/enums';
@@ -250,7 +250,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                                 ওভারটাইম ও নোট
                                                 {Number(row.overtime_hours) > 0 && (
                                                     <span className="text-foreground font-medium">
-                                                        · {toBengaliDigits(row.overtime_hours)} ঘণ্টা
+                                                        · {formatNumber(row.overtime_hours)} ঘণ্টা
                                                     </span>
                                                 )}
                                             </button>
