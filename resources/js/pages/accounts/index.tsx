@@ -1,6 +1,7 @@
-import { Column, toBengaliDigits } from '@/components/data-table';
+import { Column } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney } from '@/lib/number-format';
 import { accountTypeLabels } from '@/types/enums';
 import type { Account } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
@@ -30,7 +31,7 @@ export default function AccountsIndex({ accounts, search, canManage }: Props) {
         { header: 'দোকান', cell: (account) => account.shop?.name ?? 'সব দোকান', hideOnMobile: true },
         {
             header: 'বর্তমান জমা',
-            cell: (account) => <span className="font-medium">৳ {toBengaliDigits(account.current_balance)}</span>,
+            cell: (account) => <span className="font-medium">৳ {formatMoney(account.current_balance)}</span>,
         },
         {
             header: 'অবস্থা',

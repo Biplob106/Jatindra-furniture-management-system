@@ -5,6 +5,7 @@ import type { Paginated } from '@/types/pagination';
 import { Link, router } from '@inertiajs/react';
 import { Search } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
+import { toBengaliDigits } from '@/lib/number-format';
 
 export interface Column<T> {
     /** Bengali header text. */
@@ -144,11 +145,8 @@ function pageUrl<T>(rows: Paginated<T>, page: number): string {
 /**
  * Bengali numerals for anything the shop floor reads as a count.
  */
-export function toBengaliDigits(value: number | string): string {
-    const digits = '০১২৩৪৫৬৭৮৯';
-
-    return String(value).replace(/\d/g, (d) => digits[Number(d)]);
-}
+// Kept here for the many pages that import it from this module.
+export { toBengaliDigits };
 
 function cx(...classes: (string | false | undefined)[]): string {
     return classes.filter(Boolean).join(' ');

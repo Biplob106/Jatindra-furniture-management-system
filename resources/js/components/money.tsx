@@ -1,4 +1,4 @@
-import { toBengaliDigits } from '@/components/data-table';
+import { formatMoney } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 
 interface MoneyProps {
@@ -13,7 +13,7 @@ interface MoneyProps {
 }
 
 /**
- * Renders an amount in taka with Bengali numerals.
+ * Renders an amount in taka with Bengali numerals, grouped ৫৭,০০০ style.
  *
  * The value arrives as a decimal string because it is a DECIMAL cast on the
  * server. Number() here is for display and comparison only; no arithmetic on
@@ -32,7 +32,7 @@ export function Money({ amount, className, signed = false }: MoneyProps) {
                 className,
             )}
         >
-            ৳ {toBengaliDigits(negative ? amount.slice(1) : amount)}
+            ৳ {formatMoney(negative ? amount.slice(1) : amount)}
             {signed && negative && ' (কর্মীর কাছে)'}
         </span>
     );

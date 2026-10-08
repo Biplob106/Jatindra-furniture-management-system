@@ -1,6 +1,7 @@
-import { Column, toBengaliDigits } from '@/components/data-table';
+import { Column } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney } from '@/lib/number-format';
 import { wageTypeLabels } from '@/types/enums';
 import type { Employee } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
@@ -35,8 +36,8 @@ export default function EmployeesIndex({ employees, search, canManage }: Props) 
                 <div className="flex flex-col">
                     <span>{wageTypeLabels[employee.wage_type]}</span>
                     <span className="text-muted-foreground text-sm">
-                        {employee.wage_type === 'daily' && `৳ ${toBengaliDigits(employee.daily_rate)}`}
-                        {employee.wage_type === 'monthly' && `৳ ${toBengaliDigits(employee.monthly_salary)}`}
+                        {employee.wage_type === 'daily' && `৳ ${formatMoney(employee.daily_rate)}`}
+                        {employee.wage_type === 'monthly' && `৳ ${formatMoney(employee.monthly_salary)}`}
                         {employee.wage_type === 'piece' && 'কাজ অনুযায়ী'}
                     </span>
                 </div>

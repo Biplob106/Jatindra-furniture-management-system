@@ -1,6 +1,6 @@
-import { toBengaliDigits } from '@/components/data-table';
 import { Option } from '@/components/form-field';
 import { MasterDataFormPage } from '@/components/master-data-page';
+import { formatMoney, formatNumber } from '@/lib/number-format';
 import { materialUnitLabels } from '@/types/enums';
 import type { Material } from '@/types/models';
 import { useForm } from '@inertiajs/react';
@@ -36,12 +36,12 @@ export default function EditMaterial({ material, categories, units }: Props) {
                 <div>
                     <p className="text-muted-foreground text-sm">এখন মজুদ</p>
                     <p className="text-xl font-semibold">
-                        {toBengaliDigits(material.current_stock)} {materialUnitLabels[material.unit]}
+                        {formatNumber(material.current_stock)} {materialUnitLabels[material.unit]}
                     </p>
                 </div>
                 <div>
                     <p className="text-muted-foreground text-sm">গড় দর</p>
-                    <p className="text-xl font-semibold">৳ {toBengaliDigits(material.avg_cost)}</p>
+                    <p className="text-xl font-semibold">৳ {formatMoney(material.avg_cost)}</p>
                 </div>
             </div>
 

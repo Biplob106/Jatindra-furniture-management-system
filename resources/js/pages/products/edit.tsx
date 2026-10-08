@@ -1,7 +1,7 @@
-import { toBengaliDigits } from '@/components/data-table';
 import { Option } from '@/components/form-field';
 import { MasterDataFormPage } from '@/components/master-data-page';
 import { Money } from '@/components/money';
+import { formatNumber } from '@/lib/number-format';
 import type { Product } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -40,7 +40,7 @@ export default function EditProduct({ product, categories, shops }: Props) {
             <div className="bg-muted/50 flex gap-6 rounded-lg border p-4">
                 <div>
                     <p className="text-muted-foreground text-sm">দোকানে আছে</p>
-                    <p className="text-xl font-semibold">{toBengaliDigits(product.current_stock)} টি</p>
+                    <p className="text-xl font-semibold">{formatNumber(product.current_stock)} টি</p>
                 </div>
                 <div>
                     <p className="text-muted-foreground text-sm">খরচ দরে মূল্য</p>

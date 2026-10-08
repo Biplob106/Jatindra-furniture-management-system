@@ -2,6 +2,7 @@ import { Column, toBengaliDigits } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Money } from '@/components/money';
 import { Badge } from '@/components/ui/badge';
+import { formatNumber } from '@/lib/number-format';
 import type { Product, ProductCategory } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
 import { Link } from '@inertiajs/react';
@@ -42,7 +43,7 @@ export default function ProductsIndex({ products, search, low, lowCount, stockVa
             header: 'দোকানে আছে',
             cell: (product) => (
                 <span className={isLow(product) ? 'text-destructive font-medium' : 'font-medium'}>
-                    {toBengaliDigits(product.current_stock)} টি
+                    {formatNumber(product.current_stock)} টি
                 </span>
             ),
         },

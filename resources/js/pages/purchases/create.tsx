@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { materialUnitLabels, type MaterialUnit } from '@/types/enums';
@@ -295,7 +296,7 @@ export default function CreatePurchase({
 
                                 {lineTotal > 0 && (
                                     <p className="text-muted-foreground text-right text-sm">
-                                        ৳ {toBengaliDigits(lineTotal.toFixed(2))}
+                                        ৳ {formatMoney(lineTotal.toFixed(2))}
                                     </p>
                                 )}
                             </div>
@@ -365,7 +366,7 @@ export default function CreatePurchase({
                             onChange={(v) => setData('account_id', v)}
                             options={accounts.map((account) => ({
                                 value: String(account.value),
-                                label: `${account.label} — ৳ ${toBengaliDigits(account.balance)}`,
+                                label: `${account.label} — ৳ ${formatMoney(account.balance)}`,
                             }))}
                             error={errors.account_id}
                             required
@@ -405,10 +406,10 @@ export default function CreatePurchase({
                     <div className="mx-auto flex max-w-3xl items-center gap-3">
                         <div className="flex flex-1 flex-col text-sm">
                             <span className="text-muted-foreground">
-                                মোট ৳ {toBengaliDigits(total.toFixed(2))}
+                                মোট ৳ {formatMoney(total.toFixed(2))}
                             </span>
                             <span className={cn('font-semibold', due > 0 ? 'text-destructive' : 'text-emerald-600')}>
-                                {due > 0 ? `বাকি ৳ ${toBengaliDigits(due.toFixed(2))}` : 'পুরো শোধ'}
+                                {due > 0 ? `বাকি ৳ ${formatMoney(due.toFixed(2))}` : 'পুরো শোধ'}
                             </span>
                         </div>
 

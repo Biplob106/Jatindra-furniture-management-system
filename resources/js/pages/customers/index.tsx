@@ -1,6 +1,7 @@
-import { Column, toBengaliDigits } from '@/components/data-table';
+import { Column } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney } from '@/lib/number-format';
 import { customerTypeLabels } from '@/types/enums';
 import type { Customer } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
@@ -29,7 +30,7 @@ export default function CustomersIndex({ customers, search, canManage }: Props) 
             header: 'বকেয়া',
             cell: (customer) =>
                 Number(customer.opening_due) > 0 ? (
-                    <span className="text-destructive font-medium">৳ {toBengaliDigits(customer.opening_due)}</span>
+                    <span className="text-destructive font-medium">৳ {formatMoney(customer.opening_due)}</span>
                 ) : (
                     '—'
                 ),

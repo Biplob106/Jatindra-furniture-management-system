@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -145,12 +146,12 @@ export default function DailyClosingIndex({ date, shopId, shops, figures, existi
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">আজ জমা</span>
                                 <span className="text-green-700 tabular-nums dark:text-green-400">
-                                    + ৳ {toBengaliDigits(figures.total_in)}
+                                    + ৳ {formatMoney(figures.total_in)}
                                 </span>
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">আজ খরচ</span>
-                                <span className="text-destructive tabular-nums">− ৳ {toBengaliDigits(figures.total_out)}</span>
+                                <span className="text-destructive tabular-nums">− ৳ {formatMoney(figures.total_out)}</span>
                             </div>
 
                             <div className="mt-1 flex justify-between border-t pt-2 text-base font-semibold">
@@ -193,8 +194,8 @@ export default function DailyClosingIndex({ date, shopId, shops, figures, existi
                                             {difference === 0
                                                 ? 'হিসাব মিলে গেছে'
                                                 : difference < 0
-                                                  ? `৳ ${toBengaliDigits(Math.abs(difference).toFixed(2))} কম আছে`
-                                                  : `৳ ${toBengaliDigits(difference.toFixed(2))} বেশি আছে`}
+                                                  ? `৳ ${formatMoney(Math.abs(difference).toFixed(2))} কম আছে`
+                                                  : `৳ ${formatMoney(difference.toFixed(2))} বেশি আছে`}
                                         </p>
                                         {difference !== 0 && (
                                             <p className="text-sm">কোথায় গরমিল হলো নোটে লিখে রাখুন।</p>
@@ -252,7 +253,7 @@ export default function DailyClosingIndex({ date, shopId, shops, figures, existi
                                                 >
                                                     {Number(row.difference) === 0
                                                         ? 'মিল'
-                                                        : `${Number(row.difference) > 0 ? '+' : '−'} ৳ ${toBengaliDigits(
+                                                        : `${Number(row.difference) > 0 ? '+' : '−'} ৳ ${formatMoney(
                                                               Math.abs(Number(row.difference)).toFixed(2),
                                                           )}`}
                                                 </span>

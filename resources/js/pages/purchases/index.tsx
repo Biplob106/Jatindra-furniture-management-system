@@ -4,6 +4,7 @@ import { Option } from '@/components/form-field';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import { purchasePaymentTypeLabels, purchaseStatusLabels, type PurchasePaymentType, type PurchaseStatus } from '@/types/enums';
 import type { Paginated } from '@/types/pagination';
@@ -71,13 +72,13 @@ export default function PurchasesIndex({ purchases, search, status, statuses, to
             cell: (purchase) => <Badge variant="outline">{purchasePaymentTypeLabels[purchase.payment_type]}</Badge>,
             hideOnMobile: true,
         },
-        { header: 'মোট', cell: (purchase) => `৳ ${toBengaliDigits(purchase.total_amount)}` },
+        { header: 'মোট', cell: (purchase) => `৳ ${formatMoney(purchase.total_amount)}` },
         {
             header: 'বাকি',
             cell: (purchase) =>
                 Number(purchase.due_amount) > 0 ? (
                     <div className="flex flex-col">
-                        <span className="text-destructive font-medium">৳ {toBengaliDigits(purchase.due_amount)}</span>
+                        <span className="text-destructive font-medium">৳ {formatMoney(purchase.due_amount)}</span>
                         {isOverdue(purchase) && (
                             <span className="text-destructive text-xs">
                                 {toBengaliDigits(purchase.payment_due_date!)} তারিখ পার হয়েছে

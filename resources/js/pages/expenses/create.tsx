@@ -1,8 +1,8 @@
-import { toBengaliDigits } from '@/components/data-table';
 import { FlashMessages } from '@/components/flash-messages';
 import { Option, SelectField, TextField } from '@/components/form-field';
 import { StickySaveBar } from '@/components/sticky-save-bar';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -95,7 +95,7 @@ export default function CreateExpense({ categories, accounts, shops, paymentMeth
                     onChange={(value) => setData('account_id', value)}
                     options={accounts.map((account) => ({
                         value: account.value,
-                        label: `${account.label} — ৳ ${toBengaliDigits(account.balance)}`,
+                        label: `${account.label} — ৳ ${formatMoney(account.balance)}`,
                     }))}
                     error={errors.account_id}
                     required

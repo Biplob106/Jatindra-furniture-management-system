@@ -5,6 +5,7 @@ import { Money } from '@/components/money';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import { ledgerEntryTypeLabels, paymentMethodLabels, type LedgerDirection, type LedgerEntryType, type PaymentMethod, type WageType } from '@/types/enums';
 import type { Paginated } from '@/types/pagination';
@@ -163,7 +164,7 @@ export default function EmployeeLedgerShow({ employee, entries, balance, totals,
                                     onChange={(value) => setData('account_id', value)}
                                     options={accounts.map((account) => ({
                                         value: account.value,
-                                        label: `${account.label} — ৳ ${toBengaliDigits(account.balance)}`,
+                                        label: `${account.label} — ৳ ${formatMoney(account.balance)}`,
                                     }))}
                                     error={errors.account_id}
                                     required
@@ -243,7 +244,7 @@ export default function EmployeeLedgerShow({ employee, entries, balance, totals,
                                             : 'text-destructive font-semibold tabular-nums'
                                     }
                                 >
-                                    {entry.direction === 'credit' ? '+' : '−'} ৳ {toBengaliDigits(entry.amount)}
+                                    {entry.direction === 'credit' ? '+' : '−'} ৳ {formatMoney(entry.amount)}
                                 </span>
                             </div>
                         ))

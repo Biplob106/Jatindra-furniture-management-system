@@ -6,6 +6,7 @@ import { Money } from '@/components/money';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { formatMoney, formatNumber } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 import { ChevronDown, Minus, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -123,7 +124,7 @@ export default function OrderItemCard({
                         {toBengaliDigits(index + 1)}. {item.item_name || 'নতুন পণ্য'}
                     </p>
                     <p className="text-muted-foreground text-sm">
-                        {toBengaliDigits(item.quantity || '0')} × ৳ {toBengaliDigits(item.unit_price || '0')}
+                        {formatNumber(item.quantity || '0')} × ৳ {formatMoney(item.unit_price || '0')}
                         {' · '}ছবি {toBengaliDigits(keptPhotos.length + item.new_photos.length)}
                         {' · '}নকশা {toBengaliDigits(keptDesigns.length + item.new_designs.length)}
                     </p>

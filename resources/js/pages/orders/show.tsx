@@ -4,6 +4,7 @@ import { Money } from '@/components/money';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney, formatNumber } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Option, SelectField, TextField } from '@/components/form-field';
@@ -290,7 +291,7 @@ export default function ShowOrder({
                         {Number(order.discount) > 0 && (
                             <div className="flex justify-between">
                                 <span>ছাড়</span>
-                                <span>− ৳ {toBengaliDigits(order.discount)}</span>
+                                <span>− ৳ {formatMoney(order.discount)}</span>
                             </div>
                         )}
                         {Number(order.delivery_charge) > 0 && (
@@ -334,7 +335,7 @@ export default function ShowOrder({
                                 error={payment.errors.amount}
                                 required
                                 autoFocus
-                                hint={`বাকি ৳ ${toBengaliDigits(order.due_amount)}`}
+                                hint={`বাকি ৳ ${formatMoney(order.due_amount)}`}
                             />
 
                             <SelectField
@@ -407,7 +408,7 @@ export default function ShowOrder({
                                             entry.direction === 'in' ? 'text-green-700 dark:text-green-400' : 'text-destructive',
                                         )}
                                     >
-                                        {entry.direction === 'in' ? '+' : '−'} ৳ {toBengaliDigits(entry.amount)}
+                                        {entry.direction === 'in' ? '+' : '−'} ৳ {formatMoney(entry.amount)}
                                     </span>
                                 </div>
                             ))}
@@ -436,7 +437,7 @@ export default function ShowOrder({
 
                             <div className="text-muted-foreground mt-2 flex flex-wrap justify-between gap-x-4 text-sm">
                                 <span>
-                                    {toBengaliDigits(item.quantity)} × ৳ {toBengaliDigits(item.unit_price)}
+                                    {formatNumber(item.quantity)} × ৳ {formatMoney(item.unit_price)}
                                 </span>
                                 <Money amount={item.line_total} className="text-foreground font-medium" />
                             </div>
@@ -509,8 +510,8 @@ export default function ShowOrder({
                                         <div className="min-w-0 flex-1">
                                             <p className="truncate">{used.name}</p>
                                             <p className="text-muted-foreground">
-                                                {toBengaliDigits(used.quantity)} {materialUnitLabels[used.unit]} × ৳{' '}
-                                                {toBengaliDigits(used.unit_cost)} — {materialMovementTypeLabels[used.type]}
+                                                {formatNumber(used.quantity)} {materialUnitLabels[used.unit]} × ৳{' '}
+                                                {formatMoney(used.unit_cost)} — {materialMovementTypeLabels[used.type]}
                                             </p>
                                         </div>
                                         <span className={used.type === 'return' ? 'text-emerald-600' : ''}>

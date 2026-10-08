@@ -4,6 +4,7 @@ import { Money } from '@/components/money';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney, formatNumber } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import {
     cashPaymentMethodLabels,
@@ -138,8 +139,8 @@ export default function PurchaseShow({ purchase, items, payments }: Props) {
                             <div className="min-w-0 flex-1">
                                 <p className="truncate font-medium">{line.name}</p>
                                 <p className="text-muted-foreground text-sm">
-                                    {toBengaliDigits(line.quantity)} {unitLabel(line.unit)} × ৳{' '}
-                                    {toBengaliDigits(line.unit_price)}
+                                    {formatNumber(line.quantity)} {unitLabel(line.unit)} × ৳{' '}
+                                    {formatMoney(line.unit_price)}
                                 </p>
                                 {line.note && <p className="text-muted-foreground truncate text-sm">{line.note}</p>}
                             </div>
@@ -198,7 +199,7 @@ export default function PurchaseShow({ purchase, items, payments }: Props) {
                                         {payment.reference_no && ` — ${toBengaliDigits(payment.reference_no)}`}
                                         {/* One handover can settle several challans, so say what landed here. */}
                                         {payment.payment_total !== payment.allocated_amount &&
-                                            ` — মোট ৳ ${toBengaliDigits(payment.payment_total)} এর মধ্যে`}
+                                            ` — মোট ৳ ${formatMoney(payment.payment_total)} এর মধ্যে`}
                                     </p>
                                 </div>
                                 <Money amount={payment.allocated_amount} className="font-semibold" />

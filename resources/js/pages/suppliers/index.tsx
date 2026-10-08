@@ -1,6 +1,7 @@
 import { Column, toBengaliDigits } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney } from '@/lib/number-format';
 import { supplierTypeLabels } from '@/types/enums';
 import type { Supplier } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
@@ -46,11 +47,11 @@ export default function SuppliersIndex({ suppliers, search, canManage }: Props) 
                 const balance = Number(supplier.balance);
 
                 if (balance > 0) {
-                    return <span className="text-destructive font-medium">৳ {toBengaliDigits(supplier.balance)}</span>;
+                    return <span className="text-destructive font-medium">৳ {formatMoney(supplier.balance)}</span>;
                 }
 
                 if (balance < 0) {
-                    return <span className="font-medium text-emerald-600">৳ {toBengaliDigits(supplier.balance.replace('-', ''))} জমা</span>;
+                    return <span className="font-medium text-emerald-600">৳ {formatMoney(supplier.balance.replace('-', ''))} জমা</span>;
                 }
 
                 return '—';

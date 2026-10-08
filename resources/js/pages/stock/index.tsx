@@ -4,6 +4,7 @@ import { Option, SelectField, TextField } from '@/components/form-field';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { formatNumber } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import { materialMovementTypeLabels, materialUnitLabels, type MaterialMovementType, type MaterialUnit } from '@/types/enums';
 import type { Paginated } from '@/types/pagination';
@@ -88,7 +89,7 @@ export default function StockIndex({ movements, materialId, type, materials, ord
 
     const materialOptions = materials.map((material) => ({
         value: String(material.id),
-        label: `${material.name} — ${toBengaliDigits(material.current_stock)} ${materialUnitLabels[material.unit]}`,
+        label: `${material.name} — ${formatNumber(material.current_stock)} ${materialUnitLabels[material.unit]}`,
     }));
 
     const submitIssue: FormEventHandler = (e) => {
@@ -254,7 +255,7 @@ export default function StockIndex({ movements, materialId, type, materials, ord
                             required
                             hint={
                                 counting
-                                    ? `খাতায় আছে ${toBengaliDigits(counting.current_stock)} ${materialUnitLabels[counting.unit]}`
+                                    ? `খাতায় আছে ${formatNumber(counting.current_stock)} ${materialUnitLabels[counting.unit]}`
                                     : undefined
                             }
                         />
@@ -325,7 +326,7 @@ export default function StockIndex({ movements, materialId, type, materials, ord
                                 </div>
                                 <div className="text-right">
                                     <p className={addsStock(movement.type) ? 'font-semibold text-emerald-600' : 'font-semibold'}>
-                                        {addsStock(movement.type) ? '+' : '−'} {toBengaliDigits(movement.quantity)}{' '}
+                                        {addsStock(movement.type) ? '+' : '−'} {formatNumber(movement.quantity)}{' '}
                                         {materialUnitLabels[movement.material.unit]}
                                     </p>
                                     <Badge variant="outline">{materialMovementTypeLabels[movement.type]}</Badge>

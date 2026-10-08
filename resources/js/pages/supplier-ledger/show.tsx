@@ -5,6 +5,7 @@ import { Money } from '@/components/money';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import { supplierLedgerEntryTypeLabels, supplierTypeLabels, type LedgerDirection, type SupplierLedgerEntryType, type SupplierType } from '@/types/enums';
 import type { Paginated } from '@/types/pagination';
@@ -161,7 +162,7 @@ export default function SupplierLedgerShow({
                                 onChange={(v) => setData('account_id', v)}
                                 options={accounts.map((account) => ({
                                     value: String(account.value),
-                                    label: `${account.label} — ৳ ${toBengaliDigits(account.balance)}`,
+                                    label: `${account.label} — ৳ ${formatMoney(account.balance)}`,
                                 }))}
                                 error={errors.account_id}
                                 required

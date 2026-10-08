@@ -1,9 +1,9 @@
-import { toBengaliDigits } from '@/components/data-table';
 import { Option, SelectField, TextField } from '@/components/form-field';
 import { MasterDataFormPage } from '@/components/master-data-page';
 import { StickySaveBar } from '@/components/sticky-save-bar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { formatMoney } from '@/lib/number-format';
 import type { Account } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -64,7 +64,7 @@ export default function EditAccount({ account, types, shops }: Props) {
 
             <div className="bg-muted/50 rounded-lg border p-4">
                 <p className="text-muted-foreground text-sm">বর্তমান জমা</p>
-                <p className="text-xl font-semibold">৳ {toBengaliDigits(account.current_balance)}</p>
+                <p className="text-xl font-semibold">৳ {formatMoney(account.current_balance)}</p>
                 <p className="text-muted-foreground mt-1 text-sm">লেনদেন থেকে হিসাব হয়, এখান থেকে বদলানো যায় না।</p>
             </div>
 

@@ -1,6 +1,7 @@
 import { Column, toBengaliDigits } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney, formatNumber } from '@/lib/number-format';
 import { materialCategoryLabels, materialUnitLabels } from '@/types/enums';
 import type { Material } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
@@ -35,18 +36,18 @@ export default function MaterialsIndex({ materials, search, low, lowCount, canMa
             header: 'মজুদ',
             cell: (material) => (
                 <span className={isLow(material) ? 'text-destructive font-medium' : 'font-medium'}>
-                    {toBengaliDigits(material.current_stock)} {materialUnitLabels[material.unit]}
+                    {formatNumber(material.current_stock)} {materialUnitLabels[material.unit]}
                 </span>
             ),
         },
         {
             header: 'গড় দর',
-            cell: (material) => (Number(material.avg_cost) > 0 ? `৳ ${toBengaliDigits(material.avg_cost)}` : '—'),
+            cell: (material) => (Number(material.avg_cost) > 0 ? `৳ ${formatMoney(material.avg_cost)}` : '—'),
             hideOnMobile: true,
         },
         {
             header: 'সর্বনিম্ন',
-            cell: (material) => (Number(material.min_stock) > 0 ? toBengaliDigits(material.min_stock) : '—'),
+            cell: (material) => (Number(material.min_stock) > 0 ? formatNumber(material.min_stock) : '—'),
             hideOnMobile: true,
         },
         {

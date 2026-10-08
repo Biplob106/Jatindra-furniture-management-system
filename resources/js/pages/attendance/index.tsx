@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { formatMoney } from '@/lib/number-format';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import type { AttendanceStatus, WageType } from '@/types/enums';
@@ -217,7 +218,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                                 <p className="truncate font-medium">{employee.name}</p>
                                                 <p className="text-muted-foreground truncate text-sm">
                                                     {employee.trade ?? employee.employee_code}
-                                                    {employee.wage_type === 'daily' && ` · ৳ ${toBengaliDigits(employee.daily_rate)}`}
+                                                    {employee.wage_type === 'daily' && ` · ৳ ${formatMoney(employee.daily_rate)}`}
                                                     {employee.wage_type === 'monthly' && ' · মাসিক বেতন'}
                                                     {employee.wage_type === 'piece' && ' · কাজ চুক্তি'}
                                                 </p>
@@ -308,7 +309,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                     উপস্থিত {toBengaliDigits(presentCount)}
                                     {halfDayCount > 0 && ` · অর্ধদিবস ${toBengaliDigits(halfDayCount)}`}
                                 </p>
-                                <p className="text-muted-foreground">দিনের মজুরি ৳ {toBengaliDigits(dayTotal.toFixed(2))}</p>
+                                <p className="text-muted-foreground">দিনের মজুরি ৳ {formatMoney(dayTotal.toFixed(2))}</p>
                             </div>
                             <Button type="submit" className="h-12 px-8 text-base" disabled={processing}>
                                 {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}

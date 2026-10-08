@@ -1,6 +1,7 @@
 import { Column, toBengaliDigits } from '@/components/data-table';
 import { MasterDataPage } from '@/components/master-data-page';
 import { Badge } from '@/components/ui/badge';
+import { formatMoney } from '@/lib/number-format';
 import type { Shop } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
 
@@ -22,7 +23,7 @@ export default function ShopsIndex({ shops, search, canManage }: Props) {
             ),
         },
         { header: 'মোবাইল', cell: (shop) => shop.phone ?? '—', hideOnMobile: true },
-        { header: 'মাসিক ভাড়া', cell: (shop) => `৳ ${toBengaliDigits(shop.monthly_rent)}` },
+        { header: 'মাসিক ভাড়া', cell: (shop) => `৳ ${formatMoney(shop.monthly_rent)}` },
         { header: 'ভাড়ার তারিখ', cell: (shop) => (shop.rent_due_day ? toBengaliDigits(shop.rent_due_day) : '—'), hideOnMobile: true },
         {
             header: 'অবস্থা',

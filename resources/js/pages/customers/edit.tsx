@@ -1,6 +1,6 @@
-import { toBengaliDigits } from '@/components/data-table';
 import { Option } from '@/components/form-field';
 import { MasterDataFormPage } from '@/components/master-data-page';
+import { formatMoney } from '@/lib/number-format';
 import type { Customer } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -33,7 +33,7 @@ export default function EditCustomer({ customer, types }: Props) {
             {Number(customer.opening_due) > 0 && (
                 <div className="bg-muted/50 rounded-lg border p-4">
                     <p className="text-muted-foreground text-sm">আগের বকেয়া</p>
-                    <p className="text-xl font-semibold">৳ {toBengaliDigits(customer.opening_due)}</p>
+                    <p className="text-xl font-semibold">৳ {formatMoney(customer.opening_due)}</p>
                 </div>
             )}
 

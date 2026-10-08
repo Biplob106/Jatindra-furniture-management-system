@@ -1,6 +1,6 @@
-import { toBengaliDigits } from '@/components/data-table';
 import { Option } from '@/components/form-field';
 import { MasterDataFormPage } from '@/components/master-data-page';
+import { formatMoney } from '@/lib/number-format';
 import type { Employee } from '@/types/models';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
@@ -42,7 +42,7 @@ export default function EditEmployee({ employee, wageTypes, trades, shops }: Pro
             {Number(employee.opening_advance) > 0 && (
                 <div className="bg-muted/50 rounded-lg border p-4">
                     <p className="text-muted-foreground text-sm">আগের অগ্রিম</p>
-                    <p className="text-xl font-semibold">৳ {toBengaliDigits(employee.opening_advance)}</p>
+                    <p className="text-xl font-semibold">৳ {formatMoney(employee.opening_advance)}</p>
                 </div>
             )}
 
