@@ -92,6 +92,11 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
     });
 
     const [phoneTerm, setPhoneTerm] = useState(customerSearch);
+    // Image zones still compressing. Saving waits for them, or the order
+    // would go without the photos just picked.
+    const [compressing, setCompressing] = useState(0);
+    const trackBusy = (busy: boolean) => setCompressing((count) => count + (busy ? 1 : -1));
+
     const [openKeys, setOpenKeys] = useState<string[]>(order ? [] : [data.items[0].client_key]);
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -149,12 +154,16 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
+        if (compressing > 0) return;
+
         // Files only travel in multipart, and PHP only parses multipart on POST,
         // so an edit is a POST that Laravel reads as PUT. client_key and the
         // existing image lists are browser-only and never sent.
         transform((current) => ({
             ...current,
             ...(isEdit ? { _method: 'put' } : {}),
+            // Lets the server notice files PHP dropped over its upload limit.
+            expected_files: current.items.reduce((sum, item) => sum + item.new_photos.length + item.new_designs.length, 0),
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             items: current.items.map(({ client_key, photos, designs, ...rest }) => rest),
         }));
@@ -178,6 +187,8 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                 </div>
 
                 <FlashMessages />
+
+                {errors.expected_files && <p className="text-destructive text-sm">{errors.expected_files}</p>}
 
                 {/* Customer */}
                 <section className="flex flex-col gap-3 rounded-lg border p-4">
@@ -323,6 +334,7 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                             onToggle={() => toggle(item.client_key)}
                             onUpdate={(update) => updateItem(item.client_key, update)}
                             onRemove={data.items.length > 1 ? () => removeItem(item.client_key) : undefined}
+                            onBusyChange={trackBusy}
                             errors={itemErrors(index)}
                             categories={categories}
                             dimensionUnits={dimensionUnits}
@@ -387,9 +399,9 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                                 <Money amount={total.toFixed(2)} />
                             </p>
                         </div>
-                        <Button type="submit" className="h-12 px-8 text-base" disabled={processing}>
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                            সংরক্ষণ করুন
+                        <Button type="submit" className="h-12 px-8 text-base" disabled={processing || compressing > 0}>
+                            {(processing || compressing > 0) && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            {compressing > 0 ? 'ছবি প্রস্তুত হচ্ছে…' : 'সংরক্ষণ করুন'}
                         </Button>
                     </div>
                 </div>

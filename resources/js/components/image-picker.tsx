@@ -92,6 +92,8 @@ interface Props {
     onRemoveNew?: (index: number) => void;
     onRemoveExisting?: (id: number) => void;
     onRestore?: () => void;
+    /** Told while picked files are still being compressed, so saving can wait. */
+    onBusyChange?: (busy: boolean) => void;
     error?: string;
     max?: number;
 }
@@ -111,6 +113,7 @@ export function ImagePicker({
     onRemoveNew,
     onRemoveExisting,
     onRestore,
+    onBusyChange,
     error,
     max = 10,
 }: Props) {
@@ -118,6 +121,15 @@ export function ImagePicker({
     const [localError, setLocalError] = useState<string | null>(null);
     const [viewing, setViewing] = useState<number | null>(null);
     const previews = useObjectUrls(newFiles);
+
+    // Reported as an effect so a zone removed mid-compression still reports
+    // that it is done, through the cleanup.
+    useEffect(() => {
+        if (!busy) return;
+        onBusyChange?.(true);
+        return () => onBusyChange?.(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [busy]);
 
     const kept = existing.filter((image) => !removedIds.includes(image.id));
     const tiles = [

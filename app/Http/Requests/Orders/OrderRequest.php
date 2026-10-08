@@ -5,6 +5,7 @@ namespace App\Http\Requests\Orders;
 use App\Enums\DimensionUnit;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class OrderRequest extends FormRequest
 {
@@ -57,6 +58,40 @@ class OrderRequest extends FormRequest
             // Ownership is checked in SaveOrder against the item itself.
             'items.*.remove_media' => ['nullable', 'array'],
             'items.*.remove_media.*' => ['integer'],
+            // How many image files the form sent; checked in after().
+            'expected_files' => ['nullable', 'integer', 'min:0'],
+        ];
+    }
+
+    /**
+     * PHP silently drops uploads beyond max_file_uploads, and validation never
+     * sees what was dropped. The form states how many files it sent, so a
+     * shortfall refuses the save instead of storing an order with pictures
+     * quietly missing.
+     *
+     * @return list<callable>
+     */
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                if ($this->input('expected_files') === null) {
+                    return;
+                }
+
+                $received = 0;
+
+                foreach ($this->file('items') ?? [] as $item) {
+                    $received += count($item['new_photos'] ?? []) + count($item['new_designs'] ?? []);
+                }
+
+                if ($received < (int) $this->input('expected_files')) {
+                    $validator->errors()->add(
+                        'expected_files',
+                        'সব ছবি সার্ভারে পৌঁছায়নি। একবারে কম ছবি দিয়ে আবার সংরক্ষণ করুন।'
+                    );
+                }
+            },
         ];
     }
 

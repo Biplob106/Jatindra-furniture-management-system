@@ -182,3 +182,33 @@ it('no longer has an order-level upload route', function () {
     expect(Route::has('orders.photos.store'))->toBeFalse()
         ->and(Route::has('orders.photos.destroy'))->toBeTrue();
 });
+
+/**
+ * PHP silently discards uploads beyond max_file_uploads. The form says how
+ * many files it sent, so a shortfall is refused instead of saving an order
+ * with pictures quietly missing.
+ */
+it('refuses the save when fewer files arrive than the form sent', function () {
+    $this->actingAs($this->manager)
+        ->post('/orders', [
+            ...imagesPayload([imageItem(['new_photos' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')]])]),
+            'expected_files' => 3,
+        ])
+        ->assertSessionHasErrors('expected_files');
+
+    expect(Order::count())->toBe(0)->and(Media::count())->toBe(0);
+});
+
+it('saves when every file the form sent arrived', function () {
+    $this->actingAs($this->manager)
+        ->post('/orders', [
+            ...imagesPayload([
+                imageItem(['new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+                imageItem(['item_name' => 'আলমারি', 'new_designs' => [UploadedFile::fake()->image('b.jpg')]]),
+            ]),
+            'expected_files' => 2,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect(Media::count())->toBe(2);
+});

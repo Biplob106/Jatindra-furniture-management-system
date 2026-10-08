@@ -67,6 +67,7 @@ interface Props {
     /** Functional update so async image compression never writes stale state. */
     onUpdate: (update: (item: ItemForm) => ItemForm) => void;
     onRemove?: () => void;
+    onBusyChange: (busy: boolean) => void;
     /** Errors for this item only, keys relative to it (e.g. "item_name", "new_photos.0"). */
     errors: Record<string, string>;
     categories: Option[];
@@ -85,6 +86,7 @@ export default function OrderItemCard({
     onToggle,
     onUpdate,
     onRemove,
+    onBusyChange,
     errors,
     categories,
     dimensionUnits,
@@ -254,6 +256,7 @@ export default function OrderItemCard({
                                     remove_media: current.remove_media.filter((id) => !current.photos.some((p) => p.id === id)),
                                 }))
                             }
+                            onBusyChange={onBusyChange}
                             error={firstError(errors, 'new_photos') ?? firstError(errors, 'remove_media')}
                         />
                     </div>
@@ -272,6 +275,7 @@ export default function OrderItemCard({
                                     remove_media: current.remove_media.filter((id) => !current.designs.some((d) => d.id === id)),
                                 }))
                             }
+                            onBusyChange={onBusyChange}
                             error={firstError(errors, 'new_designs')}
                         />
                     </div>
