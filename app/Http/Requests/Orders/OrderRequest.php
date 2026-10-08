@@ -47,6 +47,16 @@ class OrderRequest extends FormRequest
             'items.*.unit_price' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'items.*.target_date' => ['nullable', 'date'],
             'items.*.remarks' => ['nullable', 'string'],
+
+            // Images for this item. Keyed under the item so a photo can only
+            // ever arrive attached to the row it was picked in.
+            'items.*.new_photos' => ['nullable', 'array', 'max:10'],
+            'items.*.new_photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'items.*.new_designs' => ['nullable', 'array', 'max:10'],
+            'items.*.new_designs.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            // Ownership is checked in SaveOrder against the item itself.
+            'items.*.remove_media' => ['nullable', 'array'],
+            'items.*.remove_media.*' => ['integer'],
         ];
     }
 
@@ -60,6 +70,14 @@ class OrderRequest extends FormRequest
             'items.min' => 'অন্তত একটি আইটেম যোগ করুন।',
             'items.*.item_name.required' => 'আইটেমের নাম দিন।',
             'items.*.quantity.gt' => 'পরিমাণ শূন্যের বেশি হতে হবে।',
+            'items.*.new_photos.max' => 'একটি পণ্যে একবারে সর্বোচ্চ ১০টি ছবি দেওয়া যাবে।',
+            'items.*.new_designs.max' => 'একটি পণ্যে একবারে সর্বোচ্চ ১০টি নকশা দেওয়া যাবে।',
+            'items.*.new_photos.*.image' => 'শুধু ছবি দেওয়া যাবে।',
+            'items.*.new_designs.*.image' => 'শুধু ছবি দেওয়া যাবে।',
+            'items.*.new_photos.*.mimes' => 'ছবি jpg, png বা webp হতে হবে।',
+            'items.*.new_designs.*.mimes' => 'ছবি jpg, png বা webp হতে হবে।',
+            'items.*.new_photos.*.max' => 'প্রতিটি ছবি সর্বোচ্চ ১০ এমবি হতে পারে।',
+            'items.*.new_designs.*.max' => 'প্রতিটি ছবি সর্বোচ্চ ১০ এমবি হতে পারে।',
             'expected_delivery_date.after_or_equal' => 'ডেলিভারির তারিখ অর্ডারের তারিখের আগে হতে পারে না।',
         ];
     }
