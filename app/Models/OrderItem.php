@@ -4,14 +4,20 @@ namespace App\Models;
 
 use App\Enums\DimensionUnit;
 use App\Enums\OrderItemStatus;
+use App\Models\Concerns\HasOrderImages;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\MediaLibrary\HasMedia;
 
-class OrderItem extends Model
+/**
+ * One piece of furniture on an order. Its photos and design drawings live
+ * here, not on the order, so two items' images can never be confused.
+ */
+class OrderItem extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, HasOrderImages;
 
     public $timestamps = false;
 
