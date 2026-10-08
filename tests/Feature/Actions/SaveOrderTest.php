@@ -10,8 +10,14 @@ use App\Models\Shop;
 use App\Models\User;
 use App\Support\ReferencedRecordException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 beforeEach(function () {
+    Storage::fake('public');
+
     $this->action = app(SaveOrder::class);
     $this->customer = Customer::factory()->create();
     $this->shop = Shop::factory()->create();
@@ -196,4 +202,109 @@ it('recalculates the subtotal down to zero when every item goes', function () {
     expect($order->items()->count())->toBe(0)
         ->and($order->fresh()->subtotal)->toBe('0.00')
         ->and($order->fresh()->total_amount)->toBe('0.00');
+});
+
+it('attaches each item its own photos and designs, none to the order', function () {
+    $order = $this->action->handle(orderData(), [
+        itemRow(['new_photos' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')]]),
+        itemRow(['item_name' => 'আলমারি', 'new_designs' => [UploadedFile::fake()->image('naksha.jpg')]]),
+    ], userId: 7);
+
+    [$khat, $almari] = $order->items()->orderBy('id')->get()->all();
+
+    expect(Media::count())->toBe(3)
+        ->and($khat->getMedia('photos'))->toHaveCount(2)
+        ->and($khat->getMedia('designs'))->toHaveCount(0)
+        ->and($almari->getMedia('photos'))->toHaveCount(0)
+        ->and($almari->getMedia('designs'))->toHaveCount(1)
+        ->and($order->getMedia('photos'))->toHaveCount(0)
+        ->and(Media::first()->getCustomProperty('uploaded_by'))->toBe(7);
+});
+
+it('removes only the named image of that item', function () {
+    $order = $this->action->handle(orderData(), [
+        itemRow(['new_photos' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')]]),
+    ]);
+    $item = $order->items()->sole();
+    [$keep, $drop] = $item->getMedia('photos')->all();
+
+    $this->action->handle(orderData(), [
+        itemRow(['id' => $item->id, 'remove_media' => [$drop->id]]),
+    ], $order);
+
+    expect(Media::pluck('id')->all())->toBe([$keep->id])
+        ->and(file_exists($drop->getPath()))->toBeFalse();
+});
+
+it('refuses to remove another item\'s image and changes nothing', function () {
+    $order = $this->action->handle(orderData(), [
+        itemRow(['new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+        itemRow(['item_name' => 'আলমারি']),
+    ]);
+    [$khat, $almari] = $order->items()->orderBy('id')->get()->all();
+    $photo = $khat->getMedia('photos')->sole();
+
+    try {
+        $this->action->handle(orderData(), [
+            itemRow(['id' => $khat->id, 'unit_price' => '1']),
+            itemRow(['id' => $almari->id, 'item_name' => 'আলমারি', 'remove_media' => [$photo->id]]),
+        ], $order);
+        $this->fail('Expected a validation exception.');
+    } catch (ValidationException $e) {
+        expect($e->errors())->toHaveKey('items.1.remove_media');
+    }
+
+    expect(Media::count())->toBe(1)
+        ->and(file_exists($photo->getPath()))->toBeTrue()
+        ->and($khat->fresh()->unit_price)->toBe('25000.00');
+});
+
+it('refuses to remove an order-level legacy image through an item', function () {
+    $order = $this->action->handle(orderData(), [itemRow()]);
+    $legacy = $order->addMedia(UploadedFile::fake()->image('old.jpg'))->toMediaCollection('photos');
+
+    expect(fn () => $this->action->handle(orderData(), [
+        itemRow(['id' => $order->items()->sole()->id, 'remove_media' => [$legacy->id]]),
+    ], $order))->toThrow(ValidationException::class);
+
+    expect(Media::count())->toBe(1);
+});
+
+it('keeps a removed image when the save fails', function () {
+    $order = $this->action->handle(orderData(), [
+        itemRow(['new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+    ]);
+    $item = $order->items()->sole();
+    $photo = $item->getMedia('photos')->sole();
+
+    expect(fn () => $this->action->handle(orderData(), [
+        itemRow(['id' => $item->id, 'remove_media' => [$photo->id]]),
+        itemRow(['item_name' => str_repeat('ক', 300)]),
+    ], $order))->toThrow(QueryException::class);
+
+    expect(Media::count())->toBe(1)
+        ->and(file_exists($photo->getPath()))->toBeTrue();
+});
+
+it('persists no media row when the save fails part way', function () {
+    expect(fn () => $this->action->handle(orderData(), [
+        itemRow(['new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+        itemRow(['item_name' => str_repeat('ক', 300)]),
+    ]))->toThrow(QueryException::class);
+
+    expect(Order::count())->toBe(0)
+        ->and(OrderItem::count())->toBe(0)
+        ->and(Media::count())->toBe(0);
+});
+
+it('deletes a dropped item\'s images with it', function () {
+    $order = $this->action->handle(orderData(), [
+        itemRow(),
+        itemRow(['item_name' => 'আলমারি', 'new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+    ]);
+    $kept = $order->items()->orderBy('id')->first();
+
+    $this->action->handle(orderData(), [itemRow(['id' => $kept->id])], $order);
+
+    expect(OrderItem::count())->toBe(1)->and(Media::count())->toBe(0);
 });

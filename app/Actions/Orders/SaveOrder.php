@@ -7,9 +7,11 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Support\ReferencedRecordException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Creates or edits an order and its items.
+ * Creates or edits an order, its items, and the items' images.
  *
  * Money is never taken from the form. line_total is computed from quantity and
  * unit_price, subtotal is summed in SQL from the items that actually landed,
@@ -19,12 +21,25 @@ use Illuminate\Support\Facades\DB;
 class SaveOrder
 {
     /**
+     * Media to delete once the save has committed.
+     *
+     * Deleting a media row removes its file from disk, and a rollback cannot
+     * put the file back. So removals are collected inside the transaction and
+     * carried out only after it commits.
+     *
+     * @var list<Media>
+     */
+    private array $mediaToDelete = [];
+
+    /**
      * @param  array<string, mixed>  $data
      * @param  list<array<string, mixed>>  $items
      */
     public function handle(array $data, array $items, ?Order $order = null, ?int $userId = null): Order
     {
-        return DB::transaction(function () use ($data, $items, $order, $userId) {
+        $this->mediaToDelete = [];
+
+        $order = DB::transaction(function () use ($data, $items, $order, $userId) {
             $isNew = $order === null;
 
             if ($isNew) {
@@ -46,11 +61,17 @@ class SaveOrder
                 'note' => $data['note'] ?? null,
             ])->save();
 
-            $this->syncItems($order, $items);
+            $this->syncItems($order, $items, $userId);
             $this->recalculateTotals($order);
 
             return $order->refresh();
         });
+
+        foreach ($this->mediaToDelete as $media) {
+            $media->delete();
+        }
+
+        return $order;
     }
 
     /**
@@ -63,11 +84,11 @@ class SaveOrder
      *
      * @param  list<array<string, mixed>>  $items
      */
-    private function syncItems(Order $order, array $items): void
+    private function syncItems(Order $order, array $items, ?int $userId): void
     {
         $keptIds = [];
 
-        foreach ($items as $row) {
+        foreach ($items as $index => $row) {
             $quantity = (string) ($row['quantity'] ?? 1);
             $unitPrice = (string) ($row['unit_price'] ?? 0);
 
@@ -98,10 +119,48 @@ class SaveOrder
             $item->order_id = $order->id;
             $item->save();
 
+            $this->syncMedia($item, $row, $index, $userId);
+
             $keptIds[] = $item->id;
         }
 
         $this->removeDroppedItems($order, $keptIds);
+    }
+
+    /**
+     * Adds the images picked for this item and queues the ones removed from it.
+     *
+     * A removal is honoured only for media this very item owns. An id from
+     * another item, or from the order's older order-level photos, refuses the
+     * whole save rather than deleting someone else's picture.
+     *
+     * @param  array<string, mixed>  $row
+     */
+    private function syncMedia(OrderItem $item, array $row, int $index, ?int $userId): void
+    {
+        foreach ($row['remove_media'] ?? [] as $mediaId) {
+            $media = Media::query()
+                ->whereKey($mediaId)
+                ->where('model_type', $item->getMorphClass())
+                ->where('model_id', $item->id)
+                ->first();
+
+            if ($media === null) {
+                throw ValidationException::withMessages([
+                    "items.{$index}.remove_media" => 'এই ছবিটি এই পণ্যের নয়, তাই মোছা যায়নি। পাতাটি আবার খুলুন।',
+                ]);
+            }
+
+            $this->mediaToDelete[] = $media;
+        }
+
+        foreach (['new_photos' => 'photos', 'new_designs' => 'designs'] as $field => $collection) {
+            foreach ($row[$field] ?? [] as $file) {
+                $item->addMedia($file)
+                    ->withCustomProperties(['uploaded_by' => $userId])
+                    ->toMediaCollection($collection);
+            }
+        }
     }
 
     /**
@@ -121,7 +180,9 @@ class SaveOrder
                 );
             }
 
-            $item->delete();
+            // The row goes now; its images go after commit, with the rest.
+            array_push($this->mediaToDelete, ...$item->media()->get()->all());
+            $item->deletePreservingMedia();
         }
     }
 
