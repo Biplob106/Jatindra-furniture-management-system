@@ -1,41 +1,23 @@
 import { toBengaliDigits } from '@/components/data-table';
 import { FlashMessages } from '@/components/flash-messages';
 import { Option, SelectField, TextField } from '@/components/form-field';
+import { type OrderImage } from '@/components/image-picker';
 import { Money } from '@/components/money';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { cn } from '@/lib/utils';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ChevronDown, LoaderCircle, Plus, Search, Trash2, UserPlus } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
+import { LoaderCircle, Plus, Search, UserPlus } from 'lucide-react';
+import { FormEventHandler, useEffect, useState } from 'react';
+import OrderItemCard, { emptyItem, type ItemForm } from './order-item-card';
 
 interface CustomerOption {
     id: number;
     name: string;
     phone: string;
     area: string | null;
-}
-
-interface ItemForm {
-    [key: string]: string | number | null | undefined;
-    id?: number;
-    category_id: string;
-    item_name: string;
-    description: string;
-    wood_type: string;
-    design_no: string;
-    length: string;
-    width: string;
-    height: string;
-    dimension_unit: string;
-    polish_type: string;
-    quantity: string;
-    unit_price: string;
-    target_date: string;
-    remarks: string;
 }
 
 interface OrderForm {
@@ -63,37 +45,31 @@ interface Props {
         delivery_charge: string;
         delivery_address: string | null;
         note: string | null;
-        items: (Partial<ItemForm> & { id: number })[];
+        items: (Partial<Record<keyof ItemForm, unknown>> & { id: number; category_id: number | null; photos: OrderImage[]; designs: OrderImage[] })[];
     };
     customers: CustomerOption[];
     customerSearch: string;
     shops: Option[];
     categories: Option[];
     dimensionUnits: Option[];
+    woodTypes: string[];
+    polishTypes: string[];
     today: string;
 }
 
-const emptyItem = (): ItemForm => ({
-    category_id: '',
-    item_name: '',
-    description: '',
-    wood_type: '',
-    design_no: '',
-    length: '',
-    width: '',
-    height: '',
-    dimension_unit: 'inch',
-    polish_type: '',
-    quantity: '1',
-    unit_price: '',
-    target_date: '',
-    remarks: '',
-});
+/** Server rows carry nulls; the form's inputs want empty strings. */
+const stripNulls = <T extends object>(row: T) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, value ?? ''])) as T;
 
-export default function CreateOrder({ order, customers, customerSearch, shops, categories, dimensionUnits, today }: Props) {
+/** yyyy-mm-dd plus n days, in UTC so no timezone shifts the date. */
+const addDays = (iso: string, days: number) => {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+};
+
+export default function CreateOrder({ order, customers, customerSearch, shops, categories, dimensionUnits, woodTypes, polishTypes, today }: Props) {
     const isEdit = Boolean(order);
 
-    const { data, setData, post, put, processing, errors } = useForm<OrderForm>({
+    const { data, setData, post, transform, processing, errors } = useForm<OrderForm>({
         customer_id: order ? String(order.customer_id) : '',
         shop_id: order ? String(order.shop_id) : shops.length === 1 ? String(shops[0].value) : '',
         order_date: order?.order_date ?? today,
@@ -103,12 +79,20 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
         delivery_address: order?.delivery_address ?? '',
         note: order?.note ?? '',
         items: order
-            ? order.items.map((item) => ({ ...emptyItem(), ...item }) as ItemForm)
+            ? order.items.map(
+                  (item) =>
+                      ({
+                          ...emptyItem(),
+                          ...stripNulls(item),
+                          category_id: item.category_id ? String(item.category_id) : '',
+                          client_key: `item-${item.id}`,
+                      }) as ItemForm,
+              )
             : [emptyItem()],
     });
 
     const [phoneTerm, setPhoneTerm] = useState(customerSearch);
-    const [openItem, setOpenItem] = useState<number | null>(0);
+    const [openKeys, setOpenKeys] = useState<string[]>(order ? [] : [data.items[0].client_key]);
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'ড্যাশবোর্ড', href: '/dashboard' },
@@ -128,28 +112,36 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
         );
     };
 
-    const setItem = (index: number, patch: Partial<ItemForm>) => {
-        setData(
-            'items',
-            data.items.map((item, i) => (i === index ? { ...item, ...patch } : item)),
-        );
-    };
+    const toggle = (key: string) => setOpenKeys((keys) => (keys.includes(key) ? keys.filter((k) => k !== key) : [...keys, key]));
+
+    const updateItem = (key: string, update: (item: ItemForm) => ItemForm) =>
+        setData((current) => ({ ...current, items: current.items.map((item) => (item.client_key === key ? update(item) : item)) }));
 
     const addItem = () => {
-        setData('items', [...data.items, emptyItem()]);
-        setOpenItem(data.items.length);
+        const item = emptyItem();
+        setData((current) => ({ ...current, items: [...current.items, item] }));
+        setOpenKeys((keys) => [...keys, item.client_key]);
     };
 
-    const removeItem = (index: number) => {
-        setData('items', data.items.filter((_, i) => i !== index));
-        setOpenItem(null);
-    };
+    const removeItem = (key: string) => setData((current) => ({ ...current, items: current.items.filter((item) => item.client_key !== key) }));
+
+    /** Errors for item `index`, with the "items.N." prefix stripped. */
+    const itemErrors = (index: number): Record<string, string> =>
+        Object.fromEntries(
+            Object.entries(errors as Record<string, string>)
+                .filter(([key]) => key.startsWith(`items.${index}.`))
+                .map(([key, message]) => [key.slice(`items.${index}.`.length), message]),
+        );
+
+    // A card the server complained about opens itself.
+    useEffect(() => {
+        const failing = data.items.filter((_, index) => Object.keys(itemErrors(index)).length > 0).map((item) => item.client_key);
+        if (failing.length > 0) setOpenKeys((keys) => Array.from(new Set([...keys, ...failing])));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [errors]);
 
     /** Preview only. The server computes what is actually charged. */
-    const subtotal = data.items.reduce(
-        (sum, item) => sum + Number(item.quantity || 0) * Number(item.unit_price || 0),
-        0,
-    );
+    const subtotal = data.items.reduce((sum, item) => sum + Number(item.quantity || 0) * Number(item.unit_price || 0), 0);
     const total = subtotal - Number(data.discount || 0) + Number(data.delivery_charge || 0);
 
     const selectedCustomer = customers.find((c) => String(c.id) === data.customer_id);
@@ -157,11 +149,20 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        if (isEdit) {
-            put(route('orders.update', order!.id));
-        } else {
-            post(route('orders.store'));
-        }
+        // Files only travel in multipart, and PHP only parses multipart on POST,
+        // so an edit is a POST that Laravel reads as PUT. client_key and the
+        // existing image lists are browser-only and never sent.
+        transform((current) => ({
+            ...current,
+            ...(isEdit ? { _method: 'put' } : {}),
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            items: current.items.map(({ client_key, photos, designs, ...rest }) => rest),
+        }));
+
+        post(isEdit ? route('orders.update', order!.id) : route('orders.store'), {
+            forceFormData: true,
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -236,11 +237,7 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                                     </button>
                                 ))}
 
-                                {customers.length === 0 && (
-                                    <p className="text-muted-foreground py-2 text-sm">
-                                        কোনো কাস্টমার পাওয়া যায়নি।
-                                    </p>
-                                )}
+                                {customers.length === 0 && <p className="text-muted-foreground py-2 text-sm">কোনো কাস্টমার পাওয়া যায়নি।</p>}
 
                                 <Button type="button" variant="outline" className="h-11" asChild>
                                     <Link href={route('customers.create')}>
@@ -275,14 +272,30 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                         error={errors.order_date}
                         required
                     />
-                    <TextField
-                        id="expected_delivery_date"
-                        label="ডেলিভারির তারিখ"
-                        type="date"
-                        value={data.expected_delivery_date}
-                        onChange={(value) => setData('expected_delivery_date', value)}
-                        error={errors.expected_delivery_date}
-                    />
+                    <div className="grid gap-2">
+                        <TextField
+                            id="expected_delivery_date"
+                            label="ডেলিভারির তারিখ"
+                            type="date"
+                            value={data.expected_delivery_date}
+                            onChange={(value) => setData('expected_delivery_date', value)}
+                            error={errors.expected_delivery_date}
+                        />
+                        <div className="flex gap-2">
+                            {[7, 15, 30].map((days) => (
+                                <Button
+                                    key={days}
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-10"
+                                    onClick={() => setData('expected_delivery_date', addDays(data.order_date || today, days))}
+                                >
+                                    +{toBengaliDigits(days)} দিন
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
                     <TextField
                         id="delivery_address"
                         label="ডেলিভারির ঠিকানা"
@@ -295,176 +308,32 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                 {/* Items */}
                 <section className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                        <h2 className="font-medium">আইটেম</h2>
+                        <h2 className="font-medium">পণ্য</h2>
                         <span className="text-muted-foreground text-sm">{toBengaliDigits(data.items.length)} টি</span>
                     </div>
 
                     {errors.items && <p className="text-destructive text-sm">{errors.items}</p>}
 
-                    {data.items.map((item, index) => {
-                        const isOpen = openItem === index;
-                        const lineTotal = Number(item.quantity || 0) * Number(item.unit_price || 0);
-
-                        return (
-                            <div key={index} className="rounded-lg border">
-                                <button
-                                    type="button"
-                                    onClick={() => setOpenItem(isOpen ? null : index)}
-                                    className="flex w-full items-center gap-3 p-4 text-left"
-                                >
-                                    <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform', isOpen && 'rotate-180')} />
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate font-medium">
-                                            {item.item_name || `আইটেম ${toBengaliDigits(index + 1)}`}
-                                        </p>
-                                        <p className="text-muted-foreground text-sm">
-                                            {toBengaliDigits(item.quantity || '0')} × ৳ {toBengaliDigits(item.unit_price || '0')}
-                                        </p>
-                                    </div>
-                                    <Money amount={lineTotal.toFixed(2)} className="font-medium" />
-                                </button>
-
-                                {isOpen && (
-                                    <div className="grid gap-4 border-t p-4 sm:grid-cols-2">
-                                        <div className="sm:col-span-2">
-                                            <TextField
-                                                id={`item_name_${index}`}
-                                                label="আইটেমের নাম"
-                                                value={item.item_name}
-                                                onChange={(value) => setItem(index, { item_name: value })}
-                                                error={errors[`items.${index}.item_name` as keyof typeof errors] as string}
-                                                required
-                                                placeholder="যেমন: সেগুন কাঠের খাট"
-                                            />
-                                        </div>
-
-                                        <TextField
-                                            id={`quantity_${index}`}
-                                            label="পরিমাণ"
-                                            type="number"
-                                            numeric
-                                            value={item.quantity}
-                                            onChange={(value) => setItem(index, { quantity: value })}
-                                            error={errors[`items.${index}.quantity` as keyof typeof errors] as string}
-                                            required
-                                        />
-
-                                        <TextField
-                                            id={`unit_price_${index}`}
-                                            label="দর"
-                                            type="number"
-                                            numeric
-                                            value={item.unit_price}
-                                            onChange={(value) => setItem(index, { unit_price: value })}
-                                            error={errors[`items.${index}.unit_price` as keyof typeof errors] as string}
-                                            required
-                                        />
-
-                                        <SelectField
-                                            id={`category_${index}`}
-                                            label="ক্যাটাগরি"
-                                            value={item.category_id}
-                                            onChange={(value) => setItem(index, { category_id: value })}
-                                            options={categories}
-                                            emptyLabel="নির্ধারিত নয়"
-                                        />
-
-                                        <TextField
-                                            id={`wood_type_${index}`}
-                                            label="কাঠ"
-                                            value={item.wood_type}
-                                            onChange={(value) => setItem(index, { wood_type: value })}
-                                            placeholder="সেগুন, মেহগনি, চাম্বল"
-                                        />
-
-                                        <div className="grid grid-cols-3 gap-2 sm:col-span-2">
-                                            <TextField
-                                                id={`length_${index}`}
-                                                label="লম্বা"
-                                                type="number"
-                                                numeric
-                                                value={item.length}
-                                                onChange={(value) => setItem(index, { length: value })}
-                                            />
-                                            <TextField
-                                                id={`width_${index}`}
-                                                label="চওড়া"
-                                                type="number"
-                                                numeric
-                                                value={item.width}
-                                                onChange={(value) => setItem(index, { width: value })}
-                                            />
-                                            <TextField
-                                                id={`height_${index}`}
-                                                label="উচ্চতা"
-                                                type="number"
-                                                numeric
-                                                value={item.height}
-                                                onChange={(value) => setItem(index, { height: value })}
-                                            />
-                                        </div>
-
-                                        <SelectField
-                                            id={`dimension_unit_${index}`}
-                                            label="মাপের একক"
-                                            value={item.dimension_unit}
-                                            onChange={(value) => setItem(index, { dimension_unit: value })}
-                                            options={dimensionUnits}
-                                        />
-
-                                        <TextField
-                                            id={`polish_${index}`}
-                                            label="পলিশ"
-                                            value={item.polish_type}
-                                            onChange={(value) => setItem(index, { polish_type: value })}
-                                        />
-
-                                        <TextField
-                                            id={`design_no_${index}`}
-                                            label="ডিজাইন নম্বর"
-                                            value={item.design_no}
-                                            onChange={(value) => setItem(index, { design_no: value })}
-                                        />
-
-                                        <TextField
-                                            id={`target_date_${index}`}
-                                            label="কাজ শেষের তারিখ"
-                                            type="date"
-                                            value={item.target_date}
-                                            onChange={(value) => setItem(index, { target_date: value })}
-                                        />
-
-                                        <div className="sm:col-span-2">
-                                            <TextField
-                                                id={`remarks_${index}`}
-                                                label="মন্তব্য"
-                                                value={item.remarks}
-                                                onChange={(value) => setItem(index, { remarks: value })}
-                                            />
-                                        </div>
-
-                                        {data.items.length > 1 && (
-                                            <div className="sm:col-span-2">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    className="text-destructive h-11 w-full"
-                                                    onClick={() => removeItem(index)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                    এই আইটেম বাদ দিন
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                    {data.items.map((item, index) => (
+                        <OrderItemCard
+                            key={item.client_key}
+                            index={index}
+                            item={item}
+                            open={openKeys.includes(item.client_key)}
+                            onToggle={() => toggle(item.client_key)}
+                            onUpdate={(update) => updateItem(item.client_key, update)}
+                            onRemove={data.items.length > 1 ? () => removeItem(item.client_key) : undefined}
+                            errors={itemErrors(index)}
+                            categories={categories}
+                            dimensionUnits={dimensionUnits}
+                            woodTypes={woodTypes}
+                            polishTypes={polishTypes}
+                        />
+                    ))}
 
                     <Button type="button" variant="outline" className="h-12 text-base" onClick={addItem}>
                         <Plus className="h-4 w-4" />
-                        আইটেম যোগ করুন
+                        পণ্য যোগ করুন
                     </Button>
                 </section>
 
@@ -506,12 +375,7 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
 
                     <div className="grid gap-2">
                         <Label htmlFor="note">নোট</Label>
-                        <Input
-                            id="note"
-                            value={data.note}
-                            onChange={(e) => setData('note', e.target.value)}
-                            className="h-12 text-base"
-                        />
+                        <Input id="note" value={data.note} onChange={(e) => setData('note', e.target.value)} className="h-12 text-base" />
                     </div>
                 </section>
 

@@ -5,12 +5,14 @@ import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, X } from 'lucide-react';
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 
-export interface OrderImage {
+// A type alias, not an interface, so it satisfies Inertia's form data index
+// signature when it sits inside useForm state.
+export type OrderImage = {
     id: number;
     name: string;
     url: string;
     thumb: string;
-}
+};
 
 /** Object URLs for local previews, revoked when the files change or unmount. */
 export function useObjectUrls(files: File[]): string[] {
