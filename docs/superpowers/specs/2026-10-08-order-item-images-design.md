@@ -1,7 +1,7 @@
 # Order item images and low-typing order form
 
 Date: 2026-10-08
-Status: approved design, awaiting spec review
+Status: approved
 
 ## Goal
 
@@ -41,9 +41,10 @@ polymorphic file store whose `collection_name` separates photos from designs.
 
 - `OrderItem` implements `HasMedia` with collections `photos` and `designs`,
   both accepting `image/jpeg`, `image/png`, `image/webp`.
-- The `thumb` (400px, q70) and `web` (1600px, q75) non-queued conversions move
-  from `Order` into a trait `App\Models\Concerns\HasOrderImageConversions`, used
-  by both `Order` and `OrderItem`, so they cannot drift.
+- The `photos`/`designs` collections and the `thumb` (400px, q70) and `web`
+  (1600px, q75) non-queued conversions move from `Order` into a trait
+  `App\Models\Concerns\HasOrderImages` (which itself uses `InteractsWithMedia`),
+  used by both `Order` and `OrderItem`, so they cannot drift.
 - `Order` keeps its collections so legacy media still resolves.
 - `wood_type` and `polish_type` stay `VARCHAR(100)` holding the Bengali text.
   Old free-text values remain valid.
@@ -80,6 +81,9 @@ Added per item:
 | `items.*.remove_media.*` | `integer` |
 | `items.*.wood_type`, `items.*.polish_type` | unchanged: `nullable`, `string`, `max:100` |
 
+`client_key`, `photos` and `designs` are stripped by the form before submit and
+are never sent.
+
 Messages in Bengali, matching the ones in `OrderPhotoRequest`. Edits are sent as
 `POST` with `_method=PUT` so multipart bodies reach Laravel; the route stays
 `orders.update`.
@@ -92,13 +96,17 @@ saved:
 
 1. For each id in `remove_media`: load the media row; if its `model_type` is not
    `OrderItem` or its `model_id` is not this item's id, throw a
-   `ReferencedRecordException` with a Bengali message, which rolls back the
-   whole save. Otherwise delete it.
+   `ValidationException` on `items.<index>.remove_media` with a Bengali message,
+   which rolls back the whole save and shows on the right card. Otherwise queue
+   it for deletion.
+   Deleting a media row deletes its file, which a rollback cannot restore, so
+   queued media is deleted only after the transaction has committed.
 2. Add each `new_photos` file to the item's `photos` collection and each
    `new_designs` file to `designs`, with custom property `uploaded_by` = the
    acting user's id (the existing `$userId` argument).
 
-When an item is dropped from the order, its media is deleted along with it. The
+When an item is dropped from the order, it is deleted with
+`deletePreservingMedia()` and its media is queued for deletion after commit. The
 existing guard that refuses to drop an item that has `order_item_works` runs
 first and is unchanged.
 
@@ -116,9 +124,8 @@ disk, that file is orphaned. The database stays correct. No cleanup job is added
 - `OrderController::edit` sends the same per-item arrays so the form can render
   and remove existing images.
 - `create` and `edit` send `woodTypes` and `polishTypes` from `OrderItemPresets`.
-- `OrderController::store` catches `ReferencedRecordException` and redirects
-  back with the message, as `update` already does. On create every
-  `remove_media` id fails the ownership check, since new items own no media.
+- On create every `remove_media` id fails the ownership check, since new items
+  own no media; the `ValidationException` needs no controller handling.
 - `OrderPhotoController::store` and route `orders.photos.store` are removed.
   `destroy` and `orders.photos.destroy` stay, for legacy order-level images.
 
@@ -211,7 +218,9 @@ moves to an exported `OrderImage` type in `image-picker.tsx`.
 - `remove_media` deletes only the named media of that item.
 - `remove_media` naming another item's media, or an order's legacy media, fails
   with the Bengali message and persists nothing: item, order and media counts
-  unchanged.
+  unchanged, and the other item's file still on disk.
+- A save that removes an image and then fails keeps both the media row and its
+  file.
 - An exception forced mid-save leaves zero new rows in `orders`, `order_items`
   and `media`.
 - Dropping an item deletes its media; dropping an item with works is still
