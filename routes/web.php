@@ -3,8 +3,8 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DailyClosingController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
 use App\Http\Controllers\ExpenseCategoryController;
@@ -63,7 +63,6 @@ Route::middleware(['auth'])->group(function () {
         Route::put('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::post('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
 
-        Route::post('orders/{order}/photos', [OrderPhotoController::class, 'store'])->name('orders.photos.store');
         Route::delete('orders/{order}/photos/{media}', [OrderPhotoController::class, 'destroy'])->name('orders.photos.destroy');
 
         // Piece work on an item. Completing one pays a piece worker.

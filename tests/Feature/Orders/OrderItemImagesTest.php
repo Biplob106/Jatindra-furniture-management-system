@@ -8,6 +8,7 @@ use App\Models\Shop;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileUnacceptableForCollection;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -106,4 +107,78 @@ it('accepts preset and custom wood and polish values', function () {
         ->assertSessionHasNoErrors();
 
     expect(OrderItem::pluck('wood_type')->all())->toBe(['সেগুন', 'পুরনো কাঠ']);
+});
+
+it('creates an order whose items carry their own images over HTTP', function () {
+    $this->actingAs($this->manager)
+        ->post('/orders', imagesPayload([
+            imageItem(['new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+            imageItem(['item_name' => 'আলমারি', 'new_designs' => [UploadedFile::fake()->image('n.jpg')]]),
+        ]))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $order = Order::sole();
+
+    $this->actingAs($this->manager)
+        ->get("/orders/{$order->id}")
+        ->assertInertia(fn ($page) => $page
+            ->has('order.items.0.photos', 1)
+            ->has('order.items.0.designs', 0)
+            ->has('order.items.1.photos', 0)
+            ->has('order.items.1.designs', 1)
+            ->has('legacyPhotos', 0)
+            ->missing('order.photos')
+        );
+});
+
+it('serves item images as web copies with thumbnails', function () {
+    $item = OrderItem::factory()->create();
+    $item->addMedia(UploadedFile::fake()->image('khat.jpg', 2400, 1800))->toMediaCollection('photos');
+
+    $photo = $this->actingAs($this->manager)
+        ->get("/orders/{$item->order_id}")
+        ->viewData('page')['props']['order']['items'][0]['photos'][0];
+
+    expect($photo['url'])->toContain('web')->and($photo['thumb'])->toContain('thumb');
+});
+
+it('records the uploader on images saved through the form', function () {
+    $this->actingAs($this->manager)->post('/orders', imagesPayload([
+        imageItem(['new_photos' => [UploadedFile::fake()->image('a.jpg')]]),
+    ]));
+
+    expect(Media::sole()->getCustomProperty('uploaded_by'))->toBe($this->manager->id);
+});
+
+it('sends existing item images and the presets to the edit form', function () {
+    $item = OrderItem::factory()->create();
+    $item->addMedia(UploadedFile::fake()->image('khat.jpg'))->toMediaCollection('designs');
+
+    $this->actingAs($this->manager)
+        ->get("/orders/{$item->order_id}/edit")
+        ->assertInertia(fn ($page) => $page
+            ->has('order.items.0.designs', 1)
+            ->has('order.items.0.photos', 0)
+            ->where('woodTypes.0', 'সেগুন')
+            ->where('polishTypes.0', 'বার্নিশ')
+        );
+});
+
+it('removes an item image through the edit form', function () {
+    $item = OrderItem::factory()->create();
+    $media = $item->addMedia(UploadedFile::fake()->image('khat.jpg'))->toMediaCollection('photos');
+
+    $this->actingAs($this->manager)
+        ->put("/orders/{$item->order_id}", imagesPayload([
+            imageItem(['id' => $item->id, 'remove_media' => [$media->id]]),
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect(Media::count())->toBe(0);
+});
+
+it('no longer has an order-level upload route', function () {
+    expect(Route::has('orders.photos.store'))->toBeFalse()
+        ->and(Route::has('orders.photos.destroy'))->toBeTrue();
 });

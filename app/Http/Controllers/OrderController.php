@@ -24,9 +24,11 @@ use App\Models\ProductCategory;
 use App\Models\Shop;
 use App\Models\Transaction;
 use App\Queries\OrderProfit;
+use App\Support\OrderItemPresets;
 use App\Support\ReferencedRecordException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
@@ -107,6 +109,7 @@ class OrderController extends Controller
             'shop:id,name',
             'items.category:id,name',
             'items.works.employee:id,name,wage_type',
+            'items.media',
             'media',
             'statusLogs.changedBy:id,name',
             'creator:id,name',
@@ -151,6 +154,8 @@ class OrderController extends Controller
                     'status' => $item->status->value,
                     'target_date' => $item->target_date?->toDateString(),
                     'remarks' => $item->remarks,
+                    'photos' => $this->images($item->getMedia('photos')),
+                    'designs' => $this->images($item->getMedia('designs')),
                     'works' => $item->works->map(fn ($work) => [
                         'id' => $work->id,
                         'employee_id' => $work->employee_id,
@@ -170,19 +175,6 @@ class OrderController extends Controller
                     'note' => $log->note,
                     'created_at' => $log->created_at?->toDateTimeString(),
                 ])->all(),
-                'photos' => $order->getMedia('photos')
-                    ->concat($order->getMedia('designs'))
-                    ->map(fn ($media) => [
-                        'id' => $media->id,
-                        'collection' => $media->collection_name,
-                        'name' => $media->file_name,
-                        // The web conversion, not the original: a phone photo
-                        // straight off the camera is several megabytes.
-                        'url' => $media->getUrl('web'),
-                        'thumb' => $media->getUrl('thumb'),
-                    ])
-                    ->values()
-                    ->all(),
                 'payments' => Transaction::query()
                     ->where('source_type', TransactionSource::OrderPayment)
                     ->where('source_id', $order->id)
@@ -232,6 +224,19 @@ class OrderController extends Controller
                 fn (OrderItemWorkStatus $status) => ['value' => $status->value, 'label' => $status->label()],
                 OrderItemWorkStatus::cases()
             ),
+            // Order-level images from before they moved onto items. Only ever
+            // shown and deleted now; nothing new lands here.
+            'legacyPhotos' => $order->getMedia('photos')
+                ->concat($order->getMedia('designs'))
+                ->map(fn ($media) => [
+                    'id' => $media->id,
+                    'collection' => $media->collection_name,
+                    'name' => $media->file_name,
+                    'url' => $media->getUrl('web'),
+                    'thumb' => $media->getUrl('thumb'),
+                ])
+                ->values()
+                ->all(),
             'canManage' => $request->user()->can('orders.manage'),
             'canTakePayment' => $request->user()->can('orders.payment'),
             // Owner only, and enforced here rather than by hiding a panel: the
@@ -345,6 +350,8 @@ class OrderController extends Controller
                 ->with('error', 'ডেলিভারি হয়ে যাওয়া বা বাতিল অর্ডার বদলানো যাবে না।');
         }
 
+        $order->load('items.media');
+
         return Inertia::render('orders/create', [
             ...$this->formProps($request),
             'order' => [
@@ -374,6 +381,8 @@ class OrderController extends Controller
                     'unit_price' => $item->unit_price,
                     'target_date' => $item->target_date?->toDateString(),
                     'remarks' => $item->remarks,
+                    'photos' => $this->images($item->getMedia('photos')),
+                    'designs' => $this->images($item->getMedia('designs')),
                 ])->all(),
             ],
         ]);
@@ -448,8 +457,26 @@ class OrderController extends Controller
                 fn (DimensionUnit $unit) => ['value' => $unit->value, 'label' => $unit->label()],
                 DimensionUnit::cases()
             ),
+            'woodTypes' => OrderItemPresets::WOOD_TYPES,
+            'polishTypes' => OrderItemPresets::POLISH_TYPES,
             'today' => now()->toDateString(),
         ];
+    }
+
+    /**
+     * The web conversion, not the original: a phone photo straight off the
+     * camera is several megabytes.
+     *
+     * @return list<array{id: int, name: string, url: string, thumb: string}>
+     */
+    private function images(Collection $media): array
+    {
+        return $media->map(fn ($item) => [
+            'id' => $item->id,
+            'name' => $item->file_name,
+            'url' => $item->getUrl('web'),
+            'thumb' => $item->getUrl('thumb'),
+        ])->values()->all();
     }
 
     /**
