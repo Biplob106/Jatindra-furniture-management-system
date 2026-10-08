@@ -20,6 +20,7 @@ import {
     type OrderStatus,
 } from '@/types/enums';
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ImagePicker, type OrderImage } from '@/components/image-picker';
 import { ItemWorks, type Work, type WorkerOption } from './item-works';
 import { OrderPhotos, type Photo } from './order-photos';
 import { LoaderCircle, Pencil, Plus } from 'lucide-react';
@@ -39,6 +40,8 @@ interface Item {
     status: OrderItemStatus;
     target_date: string | null;
     remarks: string | null;
+    photos: OrderImage[];
+    designs: OrderImage[];
     works: Work[];
 }
 
@@ -113,8 +116,9 @@ interface Props {
         items: Item[];
         status_logs: StatusLog[];
         payments: Payment[];
-        photos: Photo[];
     };
+    /** Order-level images from before they moved onto items. */
+    legacyPhotos: Photo[];
     canManage: boolean;
 }
 
@@ -138,6 +142,7 @@ export default function ShowOrder({
     workStatuses,
     today,
     canManage,
+    legacyPhotos,
     canTakePayment,
 }: Props) {
     const [showPayment, setShowPayment] = useState(false);
@@ -303,7 +308,7 @@ export default function ShowOrder({
                     </div>
                 </section>
 
-                <OrderPhotos orderId={order.id} photos={order.photos} canManage={canManage} />
+                {legacyPhotos.length > 0 && <OrderPhotos orderId={order.id} photos={legacyPhotos} canManage={canManage} />}
 
                 {/* Payments */}
                 <section className="flex flex-col gap-3 rounded-lg border p-4">
@@ -437,6 +442,13 @@ export default function ShowOrder({
                             </div>
 
                             {item.remarks && <p className="text-muted-foreground mt-2 text-sm">{item.remarks}</p>}
+
+                            {(item.photos.length > 0 || item.designs.length > 0) && (
+                                <div className="mt-3 grid gap-3">
+                                    <ImagePicker label="পণ্যের ছবি" existing={item.photos} />
+                                    <ImagePicker label="নকশা / ডিজাইনের ছবি" existing={item.designs} />
+                                </div>
+                            )}
 
                             {canManage && (
                                 <ItemWorks
