@@ -123,4 +123,21 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Owner Account
+    |--------------------------------------------------------------------------
+    |
+    | The first login, created by OwnerUserSeeder. Read through config rather
+    | than env() so seeding still works once the config is cached. Leave the
+    | phone or password empty to skip creating it.
+    |
+    */
+
+    'owner' => [
+        'name' => env('OWNER_NAME', 'মালিক'),
+        'phone' => env('OWNER_PHONE'),
+        'password' => env('OWNER_PASSWORD'),
+    ],
+
 ];
