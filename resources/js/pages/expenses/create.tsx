@@ -4,7 +4,7 @@ import { StickySaveBar } from '@/components/sticky-save-bar';
 import AppLayout from '@/layouts/app-layout';
 import { formatMoney } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
 interface AccountOption extends Option {
@@ -17,6 +17,7 @@ interface Props {
     shops: Option[];
     paymentMethods: Option[];
     today: string;
+    canRecordPurchase: boolean;
 }
 
 interface ExpenseForm {
@@ -37,7 +38,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'নতুন', href: '#' },
 ];
 
-export default function CreateExpense({ categories, accounts, shops, paymentMethods, today }: Props) {
+export default function CreateExpense({ categories, accounts, shops, paymentMethods, today, canRecordPurchase }: Props) {
     const { data, setData, post, processing, errors } = useForm<ExpenseForm>({
         category_id: '',
         account_id: accounts.length === 1 ? String(accounts[0].value) : '',
@@ -65,6 +66,18 @@ export default function CreateExpense({ categories, accounts, shops, paymentMeth
                 </div>
 
                 <FlashMessages />
+
+                <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100">
+                    কাঠ, বোর্ড, হার্ডওয়্যার বা রং কিনলে এখানে নয়,{' '}
+                    {canRecordPurchase ? (
+                        <Link href={route('purchases.create')} className="font-medium underline">
+                            ক্রয় থেকে এন্ট্রি দিন
+                        </Link>
+                    ) : (
+                        'ক্রয় থেকে এন্ট্রি দিন'
+                    )}
+                    । তাহলে মাল স্টকে উঠবে আর সাপ্লায়ারের পাওনাও হিসাবে থাকবে।
+                </p>
 
                 <SelectField
                     id="category_id"

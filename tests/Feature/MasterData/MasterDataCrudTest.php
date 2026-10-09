@@ -4,6 +4,7 @@ use App\Enums\AccountType;
 use App\Enums\Role;
 use App\Models\Account;
 use App\Models\Employee;
+use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\ProductCategory;
 use App\Models\Shop;
@@ -113,6 +114,17 @@ it('refuses to delete a trade that still has employees', function () {
         ->assertSessionHas('error');
 
     expect(Trade::find($trade->id))->not->toBeNull();
+});
+
+it('refuses to delete an expense category that has expenses against it', function () {
+    $category = ExpenseCategory::factory()->create(['name' => 'কাঠ কেনা']);
+    Expense::factory()->create(['category_id' => $category->id]);
+
+    $this->actingAs($this->owner)
+        ->delete("/expense-categories/{$category->id}")
+        ->assertSessionHas('error', 'এই খরচের খাত মুছে ফেলা যাবে না, কারণ এর সাথে ১ টি খরচ যুক্ত আছে। বদলে নিষ্ক্রিয় করে দিন।');
+
+    expect(ExpenseCategory::find($category->id))->not->toBeNull();
 });
 
 it('refuses to delete a category that still has children', function () {

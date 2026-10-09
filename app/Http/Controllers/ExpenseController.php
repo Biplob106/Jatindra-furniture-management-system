@@ -89,6 +89,7 @@ class ExpenseController extends Controller
                 PaymentMethod::cases()
             ),
             'today' => now()->toDateString(),
+            'canRecordPurchase' => $request->user()->can('purchases.record'),
         ]);
     }
 

@@ -179,3 +179,16 @@ it('keeps a storekeeper out', function () {
 
     expect(Expense::count())->toBe(0);
 });
+
+it('links the stock-purchase hint to the purchase form only for someone who may use it', function () {
+    $manager = User::factory()->create();
+    $manager->assignRole(Role::Manager->value);
+
+    $this->actingAs($manager)
+        ->get('/expenses/create')
+        ->assertInertia(fn ($page) => $page->where('canRecordPurchase', true));
+
+    $this->actingAs($this->accountant)
+        ->get('/expenses/create')
+        ->assertInertia(fn ($page) => $page->where('canRecordPurchase', false));
+});
