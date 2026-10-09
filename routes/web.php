@@ -17,6 +17,7 @@ use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\SpendingReportController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierLedgerController;
@@ -92,6 +93,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('stock/issue', [StockController::class, 'issue'])->name('stock.issue');
         Route::post('stock/count', [StockController::class, 'count'])->name('stock.count');
     });
+
+    // Purchases and expenses on one page. The whole cost side, so owner only.
+    Route::get('reports/spending', SpendingReportController::class)
+        ->middleware('permission:reports.financial')
+        ->name('reports.spending');
 
     // Supplier accounts. Reading what is owed and paying it are separate
     // permissions: a storekeeper never hands money over.

@@ -17,6 +17,7 @@ import {
     HardHat,
     LayoutGrid,
     PackagePlus,
+    PieChart,
     Receipt,
     Shapes,
     Store,
@@ -67,6 +68,12 @@ const navItems: (NavItem & { permission?: string })[] = [
         url: '/expenses',
         icon: Banknote,
         permission: 'expenses.view',
+    },
+    {
+        title: 'সব খরচের হিসাব',
+        url: '/reports/spending',
+        icon: PieChart,
+        permission: 'reports.financial',
     },
     {
         title: 'কর্মীর হিসাব',

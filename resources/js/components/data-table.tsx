@@ -23,6 +23,8 @@ interface DataTableProps<T> {
     columns: Column<T>[];
     /** Route the search box and pagination navigate to. */
     routeName: string;
+    /** Other query params the search keeps, such as the page's filters. */
+    params?: Record<string, string | number>;
     /** Current search term, echoed back by the server. */
     search?: string;
     searchPlaceholder?: string;
@@ -37,6 +39,7 @@ export function DataTable<T>({
     rows,
     columns,
     routeName,
+    params = {},
     search = '',
     searchPlaceholder = 'খুঁজুন',
     emptyMessage = 'কোনো তথ্য নেই',
@@ -45,6 +48,9 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
     const [term, setTerm] = useState(search);
     const firstRender = useRef(true);
+    // Read at search time, so a new filters object each render does not re-fire the search.
+    const paramsRef = useRef(params);
+    paramsRef.current = params;
 
     useEffect(() => {
         if (firstRender.current) {
@@ -53,7 +59,7 @@ export function DataTable<T>({
         }
 
         const timer = setTimeout(() => {
-            router.get(route(routeName), term ? { search: term } : {}, {
+            router.get(route(routeName), { ...paramsRef.current, ...(term ? { search: term } : {}) }, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
