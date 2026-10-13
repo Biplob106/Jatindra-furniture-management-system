@@ -41,7 +41,7 @@ export default function CreateAccount({ types, shops }: Props) {
             title="নতুন হিসাব"
             subtitle="যেখানে টাকা রাখা হয়"
             resource="accounts"
-            resourceTitle="হিসাব"
+            resourceTitle="ক্যাশ ও ব্যাংক"
             onSubmit={submit}
         >
             <TextField

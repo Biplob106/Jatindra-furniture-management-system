@@ -30,7 +30,7 @@ export default function EditMaterial({ material, categories, units }: Props) {
     };
 
     return (
-        <MasterDataFormPage title={material.name} resource="materials" resourceTitle="মালামাল" onSubmit={submit}>
+        <MasterDataFormPage title={material.name} resource="materials" resourceTitle="মালামালের তালিকা" onSubmit={submit}>
             {/* Stock is what the movements add up to, so it is shown, not edited. */}
             <div className="bg-muted/50 flex gap-6 rounded-lg border p-4">
                 <div>

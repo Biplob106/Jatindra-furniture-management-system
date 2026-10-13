@@ -41,7 +41,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-    { title: 'সরবরাহকারীর হিসাব', href: '/supplier-ledger' },
+    { title: 'সরবরাহকারীর পাওনা', href: '/supplier-ledger' },
 ];
 
 /** Half-open buckets, so every challan lands in exactly one. */
@@ -75,11 +75,11 @@ export default function SupplierLedgerIndex({ suppliers, search, totals }: Props
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="সরবরাহকারীর হিসাব" />
+            <Head title="সরবরাহকারীর পাওনা" />
 
             <div className="flex flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">সরবরাহকারীর হিসাব</h1>
+                    <h1 className="text-2xl font-semibold">সরবরাহকারীর পাওনা</h1>
                     <p className="text-muted-foreground text-sm">কার কত বাকি, আর কত দিন ধরে</p>
                 </div>
 

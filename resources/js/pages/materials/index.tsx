@@ -64,7 +64,7 @@ export default function MaterialsIndex({ materials, search, low, lowCount, canMa
 
     return (
         <MasterDataPage
-            title="মালামাল"
+            title="মালামালের তালিকা"
             subtitle="গুদামে কী আছে আর কত আছে"
             resource="materials"
             rows={materials}

@@ -74,7 +74,7 @@ export default function EmployeeLedgerShow({ employee, entries, balance, totals,
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-        { title: 'কর্মীর হিসাব', href: '/employee-ledger' },
+        { title: 'কর্মীর পাওনা', href: '/employee-ledger' },
         { title: employee.name, href: `/employee-ledger/${employee.id}` },
     ];
 

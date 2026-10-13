@@ -48,7 +48,7 @@ const kindLabels: Record<SpendingKind, string> = {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-    { title: 'সব খরচের হিসাব', href: '/reports/spending' },
+    { title: 'খরচের রিপোর্ট', href: '/reports/spending' },
 ];
 
 const ALL = '__all__';
@@ -118,11 +118,11 @@ export default function SpendingReport({ totals, byHeading, rows, month, shopId,
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="সব খরচের হিসাব" />
+            <Head title="খরচের রিপোর্ট" />
 
             <div className="flex flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">সব খরচের হিসাব</h1>
+                    <h1 className="text-2xl font-semibold">খরচের রিপোর্ট</h1>
                     <p className="text-muted-foreground text-sm">ক্রয় আর দোকানের খরচ একসাথে। বাকিতে কেনা মালও যে মাসে এসেছে সেই মাসে ধরা হয়েছে।</p>
                 </div>
 

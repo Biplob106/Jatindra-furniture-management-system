@@ -62,7 +62,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-    { title: 'গুদাম', href: '/stock' },
+    { title: 'মালামালের মজুদ', href: '/stock' },
 ];
 
 /** Only `in` and `return` add to the floor; the rest take from it. */
@@ -127,11 +127,11 @@ export default function StockIndex({ movements, materialId, type, materials, ord
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="গুদাম" />
+            <Head title="মালামালের মজুদ" />
 
             <div className="flex flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">গুদাম</h1>
+                    <h1 className="text-2xl font-semibold">মালামালের মজুদ</h1>
                     <p className="text-muted-foreground text-sm">কী বেরিয়েছে, কোন কাজে, আর কী নষ্ট হয়েছে</p>
                 </div>
 

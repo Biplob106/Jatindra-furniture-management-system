@@ -27,7 +27,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-    { title: 'কর্মীর হিসাব', href: '/employee-ledger' },
+    { title: 'কর্মীর পাওনা', href: '/employee-ledger' },
 ];
 
 export default function EmployeeLedgerIndex({ employees, search, totalOwed }: Props) {
@@ -53,11 +53,11 @@ export default function EmployeeLedgerIndex({ employees, search, totalOwed }: Pr
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="কর্মীর হিসাব" />
+            <Head title="কর্মীর পাওনা" />
 
             <div className="flex flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">কর্মীর হিসাব</h1>
+                    <h1 className="text-2xl font-semibold">কর্মীর পাওনা</h1>
                     <p className="text-muted-foreground text-sm">কার কত পাওনা আছে</p>
                 </div>
 

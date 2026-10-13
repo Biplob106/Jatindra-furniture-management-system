@@ -38,7 +38,7 @@ export default function EditAccount({ account, types, shops }: Props) {
     };
 
     return (
-        <MasterDataFormPage title={account.name} resource="accounts" resourceTitle="হিসাব" onSubmit={submit}>
+        <MasterDataFormPage title={account.name} resource="accounts" resourceTitle="ক্যাশ ও ব্যাংক" onSubmit={submit}>
             <TextField id="name" label="হিসাবের নাম" value={data.name} onChange={(v) => setData('name', v)} error={errors.name} required />
 
             <SelectField id="type" label="ধরন" value={data.type} onChange={(v) => setData('type', v)} options={types} error={errors.type} required />

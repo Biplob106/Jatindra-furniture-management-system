@@ -89,7 +89,7 @@ export default function SupplierLedgerShow({
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-        { title: 'সরবরাহকারীর হিসাব', href: '/supplier-ledger' },
+        { title: 'সরবরাহকারীর পাওনা', href: '/supplier-ledger' },
         { title: supplier.name, href: '#' },
     ];
 

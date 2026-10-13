@@ -50,7 +50,7 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'ড্যাশবোর্ড', href: '/dashboard' },
-    { title: 'দিনের হিসাব', href: '/daily-closing' },
+    { title: 'দিন শেষের হিসাব', href: '/daily-closing' },
 ];
 
 export default function DailyClosingIndex({ date, shopId, shops, figures, existing, recent, canClose }: Props) {
@@ -79,11 +79,11 @@ export default function DailyClosingIndex({ date, shopId, shops, figures, existi
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="দিনের হিসাব" />
+            <Head title="দিন শেষের হিসাব" />
 
             <div className="flex flex-col gap-4 p-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">দিনের হিসাব</h1>
+                    <h1 className="text-2xl font-semibold">দিন শেষের হিসাব</h1>
                     <p className="text-muted-foreground text-sm">বাক্সের টাকা গুনে মিলিয়ে নিন</p>
                 </div>
 

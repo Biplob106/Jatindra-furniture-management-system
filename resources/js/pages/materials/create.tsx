@@ -18,7 +18,7 @@ export default function CreateMaterial({ categories, units }: Props) {
     };
 
     return (
-        <MasterDataFormPage title="নতুন মালামাল" resource="materials" resourceTitle="মালামাল" onSubmit={submit}>
+        <MasterDataFormPage title="নতুন মালামাল" resource="materials" resourceTitle="মালামালের তালিকা" onSubmit={submit}>
             <MaterialFormFields
                 data={data}
                 setData={setData}

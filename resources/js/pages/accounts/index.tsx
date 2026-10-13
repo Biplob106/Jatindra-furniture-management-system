@@ -41,7 +41,7 @@ export default function AccountsIndex({ accounts, search, canManage }: Props) {
 
     return (
         <MasterDataPage
-            title="হিসাব"
+            title="ক্যাশ ও ব্যাংক"
             subtitle="ক্যাশ বাক্স, বিকাশ, নগদ, ব্যাংক"
             resource="accounts"
             rows={accounts}
