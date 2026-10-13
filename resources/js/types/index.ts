@@ -15,6 +15,8 @@ export interface BreadcrumbItem {
 export interface NavGroup {
     title: string;
     items: NavItem[];
+    /** Folded by default; opens on its own when it holds the current page. */
+    collapsible?: boolean;
 }
 
 export interface NavItem {
