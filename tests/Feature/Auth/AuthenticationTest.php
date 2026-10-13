@@ -80,6 +80,21 @@ class AuthenticationTest extends TestCase
         $this->assertNotNull($user->fresh()->last_login_at);
     }
 
+    public function test_ticking_remember_me_keeps_the_user_signed_in()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'phone' => $user->phone,
+            'password' => 'password',
+            'remember' => true,
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertCookie(\Illuminate\Support\Facades\Auth::guard()->getRecallerName());
+        $this->assertNotNull($user->refresh()->remember_token);
+    }
+
     public function test_users_can_logout()
     {
         $user = User::factory()->create();

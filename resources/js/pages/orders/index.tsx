@@ -103,7 +103,6 @@ export default function OrdersIndex({ orders, search, status, statuses, canManag
                         value={term}
                         onChange={(e) => setTerm(e.target.value)}
                         placeholder="01XXXXXXXXX বা SH-2607-0142"
-                        inputMode="numeric"
                         className="h-12 pr-9 text-base"
                     />
                 </div>

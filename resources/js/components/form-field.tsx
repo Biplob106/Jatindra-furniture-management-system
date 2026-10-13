@@ -53,10 +53,11 @@ interface TextFieldProps {
 export function TextField({ id, label, value, onChange, error, required, hint, placeholder, type = 'text', numeric, ...rest }: TextFieldProps) {
     return (
         <Field id={id} label={label} error={error} required={required} hint={hint}>
+            {/* Amounts and quantities take a decimal point; phone, NID and account numbers are digits only. */}
             <Input
                 id={id}
                 type={type}
-                inputMode={numeric ? 'numeric' : undefined}
+                inputMode={numeric ? (type === 'number' ? 'decimal' : 'numeric') : undefined}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}

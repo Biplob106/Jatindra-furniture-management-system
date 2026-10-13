@@ -214,7 +214,6 @@ export default function CreateOrder({ order, customers, customerSearch, shops, c
                                     <Search className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />
                                     <Input
                                         type="search"
-                                        inputMode="numeric"
                                         value={phoneTerm}
                                         onChange={(e) => setPhoneTerm(e.target.value)}
                                         onKeyDown={(e) => {

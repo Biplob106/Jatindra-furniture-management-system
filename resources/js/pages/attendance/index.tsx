@@ -276,7 +276,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                                     <Input
                                                         id={`ot-rate-${employee.id}`}
                                                         type="number"
-                                                        inputMode="numeric"
+                                                        inputMode="decimal"
                                                         min="0"
                                                         value={row.overtime_rate}
                                                         onChange={(e) => setRow(employee.id, { overtime_rate: e.target.value })}
