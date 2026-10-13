@@ -18,9 +18,21 @@ const toneIcon: Record<Tone, ReactNode> = {
     warn: <TriangleAlert className="size-5 shrink-0 text-amber-600" />,
 };
 
-function Row({ tone, children, href, action }: { tone: Tone; children: ReactNode; href?: string; action?: string }) {
+function Row({
+    tone,
+    children,
+    href,
+    action,
+    as: Tag = 'li',
+}: {
+    tone: Tone;
+    children: ReactNode;
+    href?: string;
+    action?: string;
+    as?: 'li' | 'div';
+}) {
     return (
-        <li className="flex min-h-12 items-center gap-3 px-4 py-2">
+        <Tag className="flex min-h-12 items-center gap-3 px-4 py-2">
             {toneIcon[tone]}
             <span className="flex-1">{children}</span>
             {href && action && (
@@ -29,7 +41,7 @@ function Row({ tone, children, href, action }: { tone: Tone; children: ReactNode
                     <ChevronRight className="size-4" />
                 </Link>
             )}
-        </li>
+        </Tag>
     );
 }
 
@@ -78,7 +90,7 @@ export function TodayChecklist({ today, lateTotal }: { today: TodayData; lateTot
 
                 {showLate && (
                     <li className="flex flex-col">
-                        <Row tone="warn" href={route('orders.index', { status: 'open' })} action="সব দেখুন">
+                        <Row as="div" tone="warn" href={route('orders.index', { status: 'open' })} action="সব দেখুন">
                             {toBengaliDigits(lateTotal)}টি অর্ডারের ডেলিভারি পেছিয়েছে
                         </Row>
                         <ul className="pb-2">

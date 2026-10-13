@@ -30,6 +30,19 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
+    public function test_reset_link_status_is_bengali_and_does_not_reveal_the_account(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+
+        $this->post('/forgot-password', ['email' => $user->email])
+            ->assertSessionHas('status', __('passwords.sent_if_exists'));
+
+        $this->post('/forgot-password', ['email' => 'nobody@example.com'])
+            ->assertSessionHas('status', __('passwords.sent_if_exists'));
+    }
+
     public function test_reset_password_screen_can_be_rendered()
     {
         Notification::fake();

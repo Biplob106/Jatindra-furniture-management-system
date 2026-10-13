@@ -1,5 +1,5 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import { type NavGroup, type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -59,13 +59,18 @@ function FoldedGroup({ group, pageUrl }: { group: NavGroup; pageUrl: string }) {
     const holdsCurrentPage = group.items.some((item) => isActiveUrl(item.url, pageUrl));
     const [open, setOpen] = useState(() => holdsCurrentPage || (readOpen(storageKey) ?? false));
 
+    // In icon mode the label (the trigger) is hidden, so show the items
+    // instead of a group nobody can open. Nothing is written to storage.
+    const { state } = useSidebar();
+    const shown = open || state === 'collapsed';
+
     const toggle = (next: boolean) => {
         setOpen(next);
         writeOpen(storageKey, next);
     };
 
     return (
-        <Collapsible open={open} onOpenChange={toggle} asChild>
+        <Collapsible open={shown} onOpenChange={toggle} asChild>
             <SidebarGroup className="px-2 py-0">
                 <SidebarGroupLabel asChild>
                     <CollapsibleTrigger className="flex h-10 w-full items-center">
