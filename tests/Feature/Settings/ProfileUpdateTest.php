@@ -61,38 +61,49 @@ class ProfileUpdateTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account()
+    public function test_profile_can_be_saved_without_an_email()
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->delete('/settings/profile', [
-                'password' => 'password',
-            ]);
-
-        $response
+        $this->actingAs($user)
+            ->patch('/settings/profile', ['name' => 'রহিম', 'email' => ''])
             ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
+            ->assertRedirect('/settings/profile');
 
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertSame('রহিম', $user->refresh()->name);
+        $this->assertNull($user->email);
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account()
+    public function test_two_users_can_both_leave_email_empty()
+    {
+        $first = User::factory()->create(['email' => null]);
+        $second = User::factory()->create();
+
+        $this->actingAs($second)
+            ->patch('/settings/profile', ['name' => $second->name, 'email' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($first->refresh()->email);
+        $this->assertNull($second->refresh()->email);
+    }
+
+    public function test_an_email_already_taken_is_still_rejected()
+    {
+        $other = User::factory()->create(['email' => 'taken@example.com']);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch('/settings/profile', ['name' => $user->name, 'email' => 'taken@example.com'])
+            ->assertSessionHasErrors('email');
+    }
+
+    public function test_staff_cannot_delete_their_own_account()
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->from('/settings/profile')
-            ->delete('/settings/profile', [
-                'password' => 'wrong-password',
-            ]);
-
-        $response
-            ->assertSessionHasErrors('password')
-            ->assertRedirect('/settings/profile');
+        $this->actingAs($user)
+            ->delete('/settings/profile', ['password' => 'password'])
+            ->assertMethodNotAllowed();
 
         $this->assertNotNull($user->fresh());
     }
