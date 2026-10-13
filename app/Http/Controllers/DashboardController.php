@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Queries\DashboardSummary;
+use App\Queries\DashboardToday;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __construct(private readonly DashboardSummary $summary) {}
+    public function __construct(
+        private readonly DashboardSummary $summary,
+        private readonly DashboardToday $today,
+    ) {}
 
     /**
      * The front page, assembled from whatever the reader is allowed to see.
@@ -28,6 +32,11 @@ class DashboardController extends Controller
             'payable' => $user->can('supplier_ledger.view') ? $this->summary->payable() : null,
             'labour' => $user->can('employee_ledger.view') ? $this->summary->labour() : null,
             'stock' => $user->can('stock.view') ? $this->summary->stock() : null,
+            'today' => [
+                'attendance' => $user->can('attendance.view') ? $this->today->attendance() : null,
+                'closing' => $user->can('daily_closing.view') ? $this->today->closing($user) : null,
+                'late_orders' => $user->can('orders.view') ? $this->today->lateOrders() : null,
+            ],
         ]);
     }
 }

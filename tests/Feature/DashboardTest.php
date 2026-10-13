@@ -7,10 +7,13 @@ use App\Enums\Role;
 use App\Enums\TransactionDirection;
 use App\Enums\TransactionSource;
 use App\Models\Account;
+use App\Models\Attendance;
+use App\Models\DailyClosing;
 use App\Models\Employee;
 use App\Models\Material;
 use App\Models\Order;
 use App\Models\Purchase;
+use App\Models\Shop;
 use App\Models\User;
 use App\Services\CashService;
 use App\Services\LedgerService;
@@ -37,6 +40,9 @@ it('shows a user with no role a page rather than a broken screen', function () {
             ->where('payable', null)
             ->where('labour', null)
             ->where('stock', null)
+            ->where('today.attendance', null)
+            ->where('today.closing', null)
+            ->where('today.late_orders', null)
         );
 });
 
@@ -232,5 +238,120 @@ it('sends a manager the order figures but not the drawer', function () {
             ->has('stock')
             // transactions.view is the bookkeeper's, not the manager's.
             ->where('cash', null)
+        );
+});
+
+it('counts today\'s attendance against active workers only', function () {
+    $today = now()->toDateString();
+
+    $marked = Employee::factory()->count(2)->create();
+    Employee::factory()->create(); // active, not yet marked
+    $turnedOff = Employee::factory()->create(['is_active' => false]);
+    $gone = Employee::factory()->create();
+
+    foreach ($marked as $employee) {
+        Attendance::factory()->create(['employee_id' => $employee->id, 'work_date' => $today]);
+    }
+    // Marked earlier, then turned off or removed: neither may push marked past total.
+    Attendance::factory()->create(['employee_id' => $turnedOff->id, 'work_date' => $today]);
+    Attendance::factory()->create(['employee_id' => $gone->id, 'work_date' => $today]);
+    $gone->delete();
+    // Yesterday's mark is not today's.
+    Attendance::factory()->create(['employee_id' => $marked[0]->id, 'work_date' => now()->subDay()->toDateString()]);
+
+    $this->actingAs($this->owner)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('today.attendance.marked', 2)
+            ->where('today.attendance.total', 3)
+        );
+});
+
+it('shows every active shop\'s closing to a reader with no shop of their own', function () {
+    $closed = Shop::factory()->create(['name' => 'A Shop']);
+    $open = Shop::factory()->create(['name' => 'B Shop']);
+    Shop::factory()->create(['name' => 'C Shop', 'is_active' => false]);
+
+    DailyClosing::factory()->create(['shop_id' => $closed->id, 'closing_date' => now()->toDateString(), 'closed_at' => now()]);
+    // A row with no closed_at is a started day, not a closed one.
+    DailyClosing::factory()->create(['shop_id' => $open->id, 'closing_date' => now()->toDateString(), 'closed_at' => null]);
+    // Yesterday's closing does not close today.
+    DailyClosing::factory()->create(['shop_id' => $open->id, 'closing_date' => now()->subDay()->toDateString(), 'closed_at' => now()->subDay()]);
+
+    $this->owner->update(['shop_id' => null]);
+
+    $this->actingAs($this->owner)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('today.closing', 2)
+            ->where('today.closing.0.shop_id', $closed->id)
+            ->where('today.closing.0.closed', true)
+            ->where('today.closing.1.shop_id', $open->id)
+            ->where('today.closing.1.closed', false)
+        );
+});
+
+it('shows only the reader\'s own shop, even when that shop is switched off', function () {
+    Shop::factory()->create(['name' => 'A Shop']);
+    $mine = Shop::factory()->create(['name' => 'B Shop', 'is_active' => false]);
+
+    $this->owner->update(['shop_id' => $mine->id]);
+
+    $this->actingAs($this->owner)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('today.closing', 1)
+            ->where('today.closing.0.shop_id', $mine->id)
+            ->where('today.closing.0.closed', false)
+        );
+});
+
+it('lists the five most overdue open orders, oldest first', function () {
+    foreach ([1, 2, 3, 4, 5, 6] as $days) {
+        Order::factory()->confirmed()->create(['expected_delivery_date' => now()->subDays($days)->toDateString()]);
+    }
+    Order::factory()->confirmed()->create(['status' => OrderStatus::Delivered, 'expected_delivery_date' => now()->subDays(30)->toDateString()]);
+    Order::factory()->confirmed()->create(['status' => OrderStatus::Cancelled, 'expected_delivery_date' => now()->subDays(40)->toDateString()]);
+    // Due today is not late yet.
+    Order::factory()->confirmed()->create(['expected_delivery_date' => now()->toDateString()]);
+
+    $this->actingAs($this->owner)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('today.late_orders', 5)
+            ->where('today.late_orders.0.days_late', 6)
+            ->where('today.late_orders.4.days_late', 2)
+            ->has('today.late_orders.0.customer_name')
+        );
+});
+
+it('lists a late draft order without a number', function () {
+    Order::factory()->create(['expected_delivery_date' => now()->subDays(3)->toDateString()]); // draft, order_no null
+
+    $this->actingAs($this->owner)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('today.late_orders', 1)
+            ->where('today.late_orders.0.order_no', null)
+            ->where('today.late_orders.0.days_late', 3)
+        );
+});
+
+it('leaves out the today blocks a storekeeper may not see', function () {
+    $storekeeper = User::factory()->create();
+    $storekeeper->assignRole(Role::Storekeeper->value);
+
+    $this->actingAs($storekeeper)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('today.attendance', null)
+            ->where('today.closing', null)
+            ->where('today.late_orders', [])
         );
 });
