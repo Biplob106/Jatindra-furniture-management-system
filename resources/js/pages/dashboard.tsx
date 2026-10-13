@@ -1,4 +1,6 @@
 import { toBengaliDigits } from '@/components/data-table';
+import { QuickActions } from '@/components/dashboard/quick-actions';
+import { TodayChecklist, type TodayData } from '@/components/dashboard/today-checklist';
 import { FlashMessages } from '@/components/flash-messages';
 import { Money } from '@/components/money';
 import AppLayout from '@/layouts/app-layout';
@@ -32,6 +34,7 @@ interface Labour {
 }
 
 interface Props {
+    today: TodayData;
     /** Null when the reader holds no permission for that block. */
     cash: Cash | null;
     orders: Orders | null;
@@ -63,13 +66,15 @@ function Tile({ label, href, icon, children, footer }: TileProps) {
     );
 }
 
-export default function Dashboard({ cash, orders, payable, labour, stock }: Props) {
+export default function Dashboard({ today, cash, orders, payable, labour, stock }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="ড্যাশবোর্ড" />
 
             <div className="flex flex-col gap-4 p-4">
                 <FlashMessages />
+                <QuickActions />
+                <TodayChecklist today={today} lateTotal={orders?.late_delivery ?? 0} />
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {cash && (
