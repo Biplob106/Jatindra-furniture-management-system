@@ -169,6 +169,12 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:employee_payment.record')
         ->name('employee-ledger.store');
 
+    // Putting the shop's own cash into an account. Guarded by the cash-record
+    // permission, not accounts.manage: it writes a transaction, not master data.
+    Route::post('accounts/{account}/deposit', [AccountController::class, 'deposit'])
+        ->middleware('permission:transactions.record')
+        ->name('accounts.deposit');
+
     // Master data. Reading and editing are separate permissions on purpose: an
     // accountant reads the employee list but must not be able to change it.
     $masterData = [

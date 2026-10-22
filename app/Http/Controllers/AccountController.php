@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Accounts\DeleteAccount;
+use App\Actions\Accounts\DepositToAccount;
 use App\Actions\Accounts\SaveAccount;
 use App\Enums\AccountType;
 use App\Http\Requests\MasterData\AccountRequest;
+use App\Http\Requests\MasterData\DepositRequest;
 use App\Models\Account;
 use App\Models\Shop;
 use App\Support\ReferencedRecordException;
@@ -47,13 +49,33 @@ class AccountController extends Controller
         return to_route('accounts.index')->with('success', 'হিসাব যোগ করা হয়েছে।');
     }
 
-    public function edit(Account $account): Response
+    public function edit(Request $request, Account $account): Response
     {
         return Inertia::render('accounts/edit', [
             'account' => $account,
             'types' => $this->typeOptions(),
             'shops' => $this->shopOptions(),
+            'canDeposit' => $request->user()->can('transactions.record'),
         ]);
+    }
+
+    /**
+     * Records the shop's own cash going into the account, so there is money to
+     * pay wages, advances and tiffin from.
+     */
+    public function deposit(DepositRequest $request, Account $account, DepositToAccount $deposit): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        $deposit->handle(
+            account: $account,
+            amount: number_format((float) $validated['amount'], 2, '.', ''),
+            txnDate: $validated['txn_date'],
+            note: $validated['note'] ?? null,
+            createdBy: $request->user()->id,
+        );
+
+        return to_route('accounts.edit', $account)->with('success', 'টাকা জমা হয়েছে।');
     }
 
     public function update(AccountRequest $request, Account $account, SaveAccount $saveAccount): RedirectResponse
