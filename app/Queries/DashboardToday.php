@@ -5,6 +5,7 @@ namespace App\Queries;
 use App\Models\Attendance;
 use App\Models\DailyClosing;
 use App\Models\Employee;
+use App\Models\EmployeeLedger;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
@@ -25,18 +26,30 @@ class DashboardToday
      * Both sides count only active, not-deleted employees, so a worker marked
      * this morning and turned off this afternoon cannot make marked exceed total.
      *
-     * @return array{marked: int, total: int}
+     * @return array{marked: int, total: int, night: int, earned: string}
      */
     public function attendance(?string $onDate = null): array
     {
         $date = $this->date($onDate);
 
+        $marked = Attendance::query()
+            ->where('work_date', $date)
+            ->whereHas('employee', fn ($query) => $query->where('is_active', true));
+
+        // Today's attendance earnings: the attendance-driven credits only
+        // (wage, night allowance, overtime), never a one-off bonus.
+        $earned = EmployeeLedger::query()
+            ->where('entry_date', $date)
+            ->whereIn('type', ['wage_earned', 'night_allowance', 'overtime'])
+            ->sum('amount');
+
         return [
-            'marked' => Attendance::query()
-                ->where('work_date', $date)
-                ->whereHas('employee', fn ($query) => $query->where('is_active', true))
-                ->count(),
+            'marked' => (clone $marked)->count(),
             'total' => Employee::query()->where('is_active', true)->count(),
+            'night' => (clone $marked)
+                ->whereIn('status', ['night_only', 'full_day_night', 'half_day_night'])
+                ->count(),
+            'earned' => number_format((float) $earned, 2, '.', ''),
         ];
     }
 

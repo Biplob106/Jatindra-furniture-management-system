@@ -12,6 +12,7 @@ import {
     CalendarClock,
     ClipboardList,
     Coins,
+    FileText,
     Hammer,
     HandCoins,
     HardHat,
@@ -55,6 +56,7 @@ const navGroups: { title: string; collapsible?: boolean; items: GuardedItem[] }[
         items: [
             { title: 'কর্মীর পাওনা', url: '/employee-ledger', icon: HandCoins, permission: 'employee_ledger.view' },
             { title: 'সরবরাহকারীর পাওনা', url: '/supplier-ledger', icon: Coins, permission: 'supplier_ledger.view' },
+            { title: 'পে-রোল রিপোর্ট', url: '/reports/payroll', icon: FileText, permission: 'reports.operational' },
             { title: 'খরচের রিপোর্ট', url: '/reports/spending', icon: PieChart, permission: 'reports.financial' },
         ],
     },

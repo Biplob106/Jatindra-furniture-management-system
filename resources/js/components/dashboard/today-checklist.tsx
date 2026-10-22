@@ -1,11 +1,12 @@
 import { toBengaliDigits } from '@/components/data-table';
+import { formatMoney } from '@/lib/number-format';
 import { Link } from '@inertiajs/react';
 import { ChevronRight, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { ReactNode } from 'react';
 
 export interface TodayData {
     /** Each block is null when the reader holds no permission for it. */
-    attendance: { marked: number; total: number } | null;
+    attendance: { marked: number; total: number; night: number; earned: string } | null;
     closing: { shop_id: number; name: string; closed: boolean }[] | null;
     late_orders: { id: number; order_no: string | null; customer_name: string | null; days_late: number }[] | null;
 }
@@ -65,15 +66,28 @@ export function TodayChecklist({ today, lateTotal }: { today: TodayData; lateTot
             <h2 className="text-lg font-semibold">আজকের কাজ</h2>
             <ul className="divide-y rounded-xl border">
                 {showAttendance &&
-                    (attendance.marked >= attendance.total ? (
-                        <Row tone="done">
-                            হাজিরা নেওয়া হয়েছে ({toBengaliDigits(attendance.marked)}/{toBengaliDigits(attendance.total)})
-                        </Row>
-                    ) : (
-                        <Row tone="todo" href={route('attendance.index')} action="হাজিরা নিন">
-                            হাজিরা বাকি ({toBengaliDigits(attendance.marked)}/{toBengaliDigits(attendance.total)})
-                        </Row>
-                    ))}
+                    (() => {
+                        const count = `${toBengaliDigits(attendance.marked)}/${toBengaliDigits(attendance.total)}`;
+                        const detail = (
+                            <span className="flex flex-col">
+                                <span>{attendance.marked >= attendance.total ? `হাজিরা নেওয়া হয়েছে (${count})` : `হাজিরা বাকি (${count})`}</span>
+                                {(attendance.night > 0 || Number(attendance.earned) > 0) && (
+                                    <span className="text-muted-foreground text-sm">
+                                        {attendance.night > 0 && `রাত ${toBengaliDigits(attendance.night)} · `}
+                                        আজকের মজুরি ৳ {formatMoney(attendance.earned)}
+                                    </span>
+                                )}
+                            </span>
+                        );
+
+                        return attendance.marked >= attendance.total ? (
+                            <Row tone="done">{detail}</Row>
+                        ) : (
+                            <Row tone="todo" href={route('attendance.index')} action="হাজিরা নিন">
+                                {detail}
+                            </Row>
+                        );
+                    })()}
 
                 {showClosing &&
                     closing.map((shop) =>
