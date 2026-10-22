@@ -16,6 +16,7 @@ enum LedgerEntryType: string implements LedgerEntryKind
     case WageEarned = 'wage_earned';
     case PieceEarned = 'piece_earned';
     case Overtime = 'overtime';
+    case NightAllowance = 'night_allowance';
     case Bonus = 'bonus';
 
     // Handed to the worker, so the shop owes less.
@@ -23,6 +24,7 @@ enum LedgerEntryType: string implements LedgerEntryKind
     case Tiffin = 'tiffin';
     case Payout = 'payout';
     case Fine = 'fine';
+    case Deduction = 'deduction';
 
     // Either direction, caller decides.
     case Opening = 'opening';
@@ -35,11 +37,13 @@ enum LedgerEntryType: string implements LedgerEntryKind
             self::WageEarned => 'হাজিরা',
             self::PieceEarned => 'কাজের মজুরি',
             self::Overtime => 'ওভারটাইম',
+            self::NightAllowance => 'রাত্রি ভাতা',
             self::Bonus => 'বোনাস',
             self::Advance => 'অগ্রিম',
             self::Tiffin => 'টিফিন',
             self::Payout => 'পরিশোধ',
             self::Fine => 'জরিমানা',
+            self::Deduction => 'কর্তন',
             self::Adjustment => 'সংশোধন',
         };
     }
@@ -50,8 +54,8 @@ enum LedgerEntryType: string implements LedgerEntryKind
     public function direction(): ?LedgerDirection
     {
         return match ($this) {
-            self::WageEarned, self::PieceEarned, self::Overtime, self::Bonus => LedgerDirection::Credit,
-            self::Advance, self::Tiffin, self::Payout, self::Fine => LedgerDirection::Debit,
+            self::WageEarned, self::PieceEarned, self::Overtime, self::NightAllowance, self::Bonus => LedgerDirection::Credit,
+            self::Advance, self::Tiffin, self::Payout, self::Fine, self::Deduction => LedgerDirection::Debit,
             self::Opening, self::Adjustment => null,
         };
     }

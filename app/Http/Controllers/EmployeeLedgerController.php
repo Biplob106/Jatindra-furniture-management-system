@@ -7,6 +7,7 @@ use App\Enums\LedgerEntryType;
 use App\Enums\PaymentMethod;
 use App\Http\Requests\Employees\EmployeePaymentRequest;
 use App\Models\Account;
+use App\Models\DeductionCategory;
 use App\Models\Employee;
 use App\Models\EmployeeLedger;
 use App\Services\LedgerService;
@@ -73,6 +74,7 @@ class EmployeeLedgerController extends Controller
     {
         $entries = EmployeeLedger::query()
             ->where('employee_id', $employee->id)
+            ->with('deductionCategory:id,name')
             ->orderByDesc('entry_date')
             ->orderByDesc('id')
             ->paginate(50)
@@ -84,6 +86,7 @@ class EmployeeLedgerController extends Controller
                 'direction' => $entry->direction->value,
                 'amount' => $entry->amount,
                 'payment_method' => $entry->payment_method?->value,
+                'category' => $entry->deductionCategory?->name,
                 'note' => $entry->note,
             ]);
 
@@ -101,6 +104,12 @@ class EmployeeLedgerController extends Controller
             'balance' => $this->ledger->balanceFor($employee),
             'totals' => $this->totalsFor($employee),
             'paymentTypes' => $this->paymentTypeOptions(),
+            'deductionCategories' => DeductionCategory::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (DeductionCategory $category) => ['value' => $category->id, 'label' => $category->name])
+                ->all(),
             'paymentMethods' => array_map(
                 fn (PaymentMethod $method) => ['value' => $method->value, 'label' => $method->label()],
                 PaymentMethod::cases()
@@ -122,17 +131,21 @@ class EmployeeLedgerController extends Controller
     public function store(EmployeePaymentRequest $request, Employee $employee, RecordEmployeePayment $record): RedirectResponse
     {
         $validated = $request->validated();
+        $type = LedgerEntryType::from($validated['type']);
 
         try {
             $record->handle(
                 employee: $employee,
-                type: LedgerEntryType::from($validated['type']),
+                type: $type,
                 amount: number_format((float) $validated['amount'], 2, '.', ''),
                 entryDate: $validated['entry_date'],
                 account: isset($validated['account_id']) ? Account::find($validated['account_id']) : null,
                 paymentMethod: PaymentMethod::from($validated['payment_method'] ?? 'cash'),
                 note: $validated['note'] ?? null,
                 createdBy: $request->user()->id,
+                deductionCategory: $type === LedgerEntryType::Deduction && isset($validated['deduction_category_id'])
+                    ? DeductionCategory::find($validated['deduction_category_id'])
+                    : null,
             );
         } catch (RuntimeException $e) {
             // The cash box could not cover it. Nothing was written.
@@ -178,6 +191,7 @@ class EmployeeLedgerController extends Controller
                 LedgerEntryType::Tiffin,
                 LedgerEntryType::Bonus,
                 LedgerEntryType::Fine,
+                LedgerEntryType::Deduction,
             ]
         );
     }

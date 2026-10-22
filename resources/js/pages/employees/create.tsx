@@ -22,6 +22,7 @@ export default function CreateEmployee({ wageTypes, trades, shops, nextCode }: P
         shop_id: '',
         wage_type: 'daily',
         daily_rate: '0',
+        night_rate: '',
         monthly_salary: '0',
         joining_date: '',
         guarantor_name: '',

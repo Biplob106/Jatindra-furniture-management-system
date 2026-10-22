@@ -35,6 +35,7 @@ class RolePermissionSeeder extends Seeder
             'trades.view', 'trades.manage',
             'accounts.view', 'accounts.manage',
             'expense_categories.view', 'expense_categories.manage',
+            'deduction_categories.view', 'deduction_categories.manage',
             'product_categories.view', 'product_categories.manage',
         ],
         'labour' => [
@@ -73,6 +74,11 @@ class RolePermissionSeeder extends Seeder
             'reports.financial',
             'orders.profit',
         ],
+        'settings' => [
+            // Payroll policy knobs such as the default night allowance. Owner
+            // only; not granted to any other role below.
+            'settings.manage',
+        ],
     ];
 
     /**
@@ -87,6 +93,7 @@ class RolePermissionSeeder extends Seeder
             'employees.view', 'employees.manage',
             'trades.view', 'trades.manage',
             'product_categories.view', 'product_categories.manage',
+            'deduction_categories.view', 'deduction_categories.manage',
             'attendance.view', 'attendance.mark',
             'employee_ledger.view', 'employee_payment.record',
             'orders.view', 'orders.manage', 'orders.delivery', 'orders.payment',
@@ -105,6 +112,7 @@ class RolePermissionSeeder extends Seeder
             'employees.view',
             'accounts.view', 'accounts.manage',
             'expense_categories.view', 'expense_categories.manage',
+            'deduction_categories.view', 'deduction_categories.manage',
             'attendance.view',
             'employee_ledger.view', 'employee_payment.record',
             'salary.generate',

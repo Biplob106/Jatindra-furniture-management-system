@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\Attendance\MarkDailyAttendance;
 use App\Enums\AttendanceStatus;
+use App\Enums\WageType;
 use App\Http\Requests\Attendance\MarkAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\Employee;
+use App\Models\Setting;
 use App\Models\Shop;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +41,11 @@ class AttendanceController extends Controller
             ->get()
             ->keyBy('employee_id');
 
+        // The fraction of the daily wage a night earns when an employee has no
+        // flat override. Used only for the on-screen preview; the saved amount
+        // is computed by MarkDailyAttendance.
+        $nightMultiplier = Setting::read('payroll.night_multiplier', '0.5');
+
         return Inertia::render('attendance/index', [
             'workDate' => $date,
             'shopId' => $shopId,
@@ -48,7 +55,7 @@ class AttendanceController extends Controller
                 ->get(['id', 'name'])
                 ->map(fn (Shop $shop) => ['value' => $shop->id, 'label' => $shop->name])
                 ->all(),
-            'employees' => $employees->map(function (Employee $employee) use ($existing) {
+            'employees' => $employees->map(function (Employee $employee) use ($existing, $nightMultiplier) {
                 $saved = $existing->get($employee->id);
 
                 return [
@@ -58,6 +65,7 @@ class AttendanceController extends Controller
                     'trade' => $employee->trade?->name,
                     'wage_type' => $employee->wage_type->value,
                     'daily_rate' => $employee->daily_rate,
+                    'night_rate' => $this->nightPreviewRate($employee, $nightMultiplier),
                     'status' => $saved?->status->value,
                     'in_time' => $saved?->in_time ? substr($saved->in_time, 0, 5) : null,
                     'out_time' => $saved?->out_time ? substr($saved->out_time, 0, 5) : null,
@@ -71,6 +79,7 @@ class AttendanceController extends Controller
                     'value' => $status->value,
                     'label' => $status->label(),
                     'earnsWage' => $status->earnsWage(),
+                    'hasNight' => $status->hasNight(),
                 ],
                 AttendanceStatus::cases()
             ),
@@ -94,6 +103,24 @@ class AttendanceController extends Controller
             'date' => $validated['work_date'],
             'shop_id' => $validated['shop_id'] ?? null,
         ]))->with('success', 'হাজিরা সংরক্ষণ করা হয়েছে।');
+    }
+
+    /**
+     * The night allowance shown in the preview: the flat override when set,
+     * otherwise the configured fraction of the daily wage. Monthly staff earn
+     * no night allowance, so they preview as zero.
+     */
+    private function nightPreviewRate(Employee $employee, string $multiplier): string
+    {
+        if ($employee->wage_type === WageType::Monthly) {
+            return '0.00';
+        }
+
+        if ($employee->night_rate !== null) {
+            return bcadd((string) $employee->night_rate, '0', 2);
+        }
+
+        return bcmul((string) $employee->daily_rate, $multiplier, 2);
     }
 
     /**

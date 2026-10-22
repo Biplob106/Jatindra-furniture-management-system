@@ -28,6 +28,7 @@ class EmployeeFactory extends Factory
             'shop_id' => null,
             'wage_type' => WageType::Daily,
             'daily_rate' => 700,
+            'night_rate' => null,
             'monthly_salary' => 0,
             'joining_date' => fake()->dateTimeBetween('-3 years')->format('Y-m-d'),
             'guarantor_name' => fake()->name(),

@@ -110,6 +110,35 @@ it('records a fine without touching the cash box', function () {
         ->and($this->account->fresh()->current_balance)->toBe('50000.00');
 });
 
+it('records a custom deduction tagged with its category', function () {
+    $category = App\Models\DeductionCategory::factory()->create(['name' => 'ইউনিফর্ম']);
+
+    $this->actingAs($this->accountant)->post("/employee-ledger/{$this->employee->id}", [
+        'type' => 'deduction',
+        'amount' => '300',
+        'entry_date' => '2026-07-20',
+        'deduction_category_id' => $category->id,
+    ]);
+
+    $entry = EmployeeLedger::where('type', LedgerEntryType::Deduction)->sole();
+
+    expect(Transaction::count())->toBe(0)
+        ->and($entry->deduction_category_id)->toBe($category->id)
+        ->and(app(LedgerService::class)->balanceFor($this->employee))->toBe('4700.00');
+});
+
+it('refuses a deduction with no category', function () {
+    $this->actingAs($this->accountant)
+        ->post("/employee-ledger/{$this->employee->id}", [
+            'type' => 'deduction',
+            'amount' => '300',
+            'entry_date' => '2026-07-20',
+        ])
+        ->assertSessionHasErrors('deduction_category_id');
+
+    expect(EmployeeLedger::where('type', LedgerEntryType::Deduction)->count())->toBe(0);
+});
+
 it('demands an account when money actually changes hands', function () {
     $this->actingAs($this->accountant)
         ->post("/employee-ledger/{$this->employee->id}", [

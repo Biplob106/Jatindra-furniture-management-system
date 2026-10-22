@@ -28,12 +28,18 @@ class EmployeePaymentRequest extends FormRequest
                 LedgerEntryType::Payout,
                 LedgerEntryType::Fine,
                 LedgerEntryType::Bonus,
+                LedgerEntryType::Deduction,
             ])],
             'amount' => ['required', 'numeric', 'gt:0', 'max:9999999999', 'decimal:0,2'],
             'entry_date' => ['required', 'date', 'before_or_equal:today'],
             // Only the types that hand money over need somewhere to take it
-            // from. A fine and a bonus move no cash at all.
+            // from. A fine, bonus or deduction move no cash at all.
             'account_id' => [$movesCash ? 'required' : 'nullable', 'integer', 'exists:accounts,id'],
+            // A deduction is meaningless without its category.
+            'deduction_category_id' => [
+                $this->input('type') === LedgerEntryType::Deduction->value ? 'required' : 'nullable',
+                'integer', 'exists:deduction_categories,id',
+            ],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'note' => ['nullable', 'string', 'max:255'],
         ];
@@ -46,6 +52,7 @@ class EmployeePaymentRequest extends FormRequest
     {
         return [
             'account_id.required' => 'টাকা কোন হিসাব থেকে দেওয়া হচ্ছে তা বেছে নিন।',
+            'deduction_category_id.required' => 'কর্তনের খাত বেছে নিন।',
             'amount.gt' => 'টাকার পরিমাণ শূন্যের বেশি হতে হবে।',
             'entry_date.before_or_equal' => 'ভবিষ্যতের তারিখে টাকা দেওয়া যাবে না।',
         ];

@@ -7,6 +7,7 @@ use App\Enums\LedgerEntryType;
 use App\Enums\PaymentMethod;
 use App\Enums\TransactionSource;
 use App\Models\Account;
+use App\Models\DeductionCategory;
 use App\Models\Employee;
 use App\Models\EmployeeLedger;
 use App\Services\CashService;
@@ -21,12 +22,13 @@ use InvalidArgumentException;
  * docs/schema.md is explicit about which:
  *
  *   advance / tiffin / payout  ->  employee_ledger debit + transactions out
- *   fine                       ->  employee_ledger debit, no cash moves
+ *   fine / deduction           ->  employee_ledger debit, no cash moves
  *   bonus                      ->  employee_ledger credit, no cash moves
  *
  * A fine does not move money, it reduces what the shop owes. A bonus is the
- * same in reverse. Writing a transactions row for either would put money in
- * the daily closing that never left the drawer.
+ * same in reverse. A deduction is a fine with an admin-defined category. Writing
+ * a transactions row for any of them would put money in the daily closing that
+ * never left the drawer.
  */
 class RecordEmployeePayment
 {
@@ -51,6 +53,7 @@ class RecordEmployeePayment
         PaymentMethod $paymentMethod = PaymentMethod::Cash,
         ?string $note = null,
         ?int $createdBy = null,
+        ?DeductionCategory $deductionCategory = null,
     ): EmployeeLedger {
         $movesCash = in_array($type, self::MOVES_CASH, true);
 
@@ -58,11 +61,17 @@ class RecordEmployeePayment
             throw new InvalidArgumentException("{$type->value} hands over money, so it needs an account to take it from.");
         }
 
-        if (! $movesCash && ! in_array($type, [LedgerEntryType::Fine, LedgerEntryType::Bonus], true)) {
+        if (! $movesCash && ! in_array($type, [LedgerEntryType::Fine, LedgerEntryType::Bonus, LedgerEntryType::Deduction], true)) {
             throw new InvalidArgumentException("{$type->value} is not an employee payment.");
         }
 
-        return DB::transaction(function () use ($employee, $type, $amount, $entryDate, $account, $paymentMethod, $note, $createdBy, $movesCash) {
+        // A deduction is only meaningful with its category; an untagged one is
+        // an untraceable debit the whole feature exists to avoid.
+        if ($type === LedgerEntryType::Deduction && $deductionCategory === null) {
+            throw new InvalidArgumentException('A deduction needs a category.');
+        }
+
+        return DB::transaction(function () use ($employee, $type, $amount, $entryDate, $account, $paymentMethod, $note, $createdBy, $movesCash, $deductionCategory) {
             $entry = $this->ledger->record(
                 employee: $employee,
                 type: $type,
@@ -71,6 +80,7 @@ class RecordEmployeePayment
                 paymentMethod: $movesCash ? $paymentMethod : null,
                 note: $note,
                 createdBy: $createdBy,
+                deductionCategoryId: $deductionCategory?->id,
             );
 
             if ($movesCash) {

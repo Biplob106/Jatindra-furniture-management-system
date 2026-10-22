@@ -72,7 +72,15 @@ export const orderItemWorkStatusLabels: Record<OrderItemWorkStatus, string> = {
     rejected: 'বাতিল',
 };
 
-export type AttendanceStatus = 'present' | 'absent' | 'half_day' | 'leave' | 'holiday';
+export type AttendanceStatus =
+    | 'present'
+    | 'absent'
+    | 'half_day'
+    | 'leave'
+    | 'holiday'
+    | 'night_only'
+    | 'full_day_night'
+    | 'half_day_night';
 
 export const attendanceStatusLabels: Record<AttendanceStatus, string> = {
     present: 'উপস্থিত',
@@ -80,6 +88,9 @@ export const attendanceStatusLabels: Record<AttendanceStatus, string> = {
     half_day: 'অর্ধদিবস',
     leave: 'ছুটি',
     holiday: 'বন্ধের দিন',
+    night_only: 'শুধু রাত',
+    full_day_night: 'পূর্ণ দিন + রাত',
+    half_day_night: 'অর্ধদিবস + রাত',
 };
 
 export type LedgerDirection = 'credit' | 'debit';
@@ -94,11 +105,13 @@ export type LedgerEntryType =
     | 'wage_earned'
     | 'piece_earned'
     | 'overtime'
+    | 'night_allowance'
     | 'bonus'
     | 'advance'
     | 'tiffin'
     | 'payout'
     | 'fine'
+    | 'deduction'
     | 'adjustment';
 
 export const ledgerEntryTypeLabels: Record<LedgerEntryType, string> = {
@@ -106,11 +119,13 @@ export const ledgerEntryTypeLabels: Record<LedgerEntryType, string> = {
     wage_earned: 'হাজিরা',
     piece_earned: 'কাজের মজুরি',
     overtime: 'ওভারটাইম',
+    night_allowance: 'রাত্রি ভাতা',
     bonus: 'বোনাস',
     advance: 'অগ্রিম',
     tiffin: 'টিফিন',
     payout: 'পরিশোধ',
     fine: 'জরিমানা',
+    deduction: 'কর্তন',
     adjustment: 'সংশোধন',
 };
 

@@ -27,6 +27,10 @@ class SaveEmployee
         $data['daily_rate'] = $wageType === WageType::Daily ? ($data['daily_rate'] ?? 0) : 0;
         $data['monthly_salary'] = $wageType === WageType::Monthly ? ($data['monthly_salary'] ?? 0) : 0;
 
+        // Monthly staff earn no night allowance, so a night rate on their record
+        // would be a dead value. Daily and piece workers keep whatever was set.
+        $data['night_rate'] = $wageType === WageType::Monthly ? null : ($data['night_rate'] ?? null);
+
         return DB::transaction(function () use ($data, $employee) {
             $employee ??= new Employee;
 

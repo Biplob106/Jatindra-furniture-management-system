@@ -34,6 +34,9 @@ class EmployeeRequest extends FormRequest
             // Required only for the wage type that actually uses it. The Action
             // zeroes the other one so a stale rate cannot pay a worker twice.
             'daily_rate' => ['nullable', 'required_if:wage_type,'.WageType::Daily->value, 'numeric', 'min:0', 'max:99999999'],
+            // Optional flat night allowance. Null falls back to the configured
+            // fraction of the daily wage; the Action clears it for monthly staff.
+            'night_rate' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'monthly_salary' => ['nullable', 'required_if:wage_type,'.WageType::Monthly->value, 'numeric', 'min:0', 'max:9999999999'],
             'joining_date' => ['nullable', 'date'],
             'guarantor_name' => ['nullable', 'string', 'max:150'],

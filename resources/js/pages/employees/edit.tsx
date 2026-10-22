@@ -24,6 +24,7 @@ export default function EditEmployee({ employee, wageTypes, trades, shops }: Pro
         shop_id: employee.shop_id ? String(employee.shop_id) : '',
         wage_type: employee.wage_type,
         daily_rate: employee.daily_rate,
+        night_rate: employee.night_rate ?? '',
         monthly_salary: employee.monthly_salary,
         joining_date: employee.joining_date ?? '',
         guarantor_name: employee.guarantor_name ?? '',

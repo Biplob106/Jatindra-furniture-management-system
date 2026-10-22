@@ -69,6 +69,7 @@ export interface Employee {
     shop_id: number | null;
     wage_type: WageType;
     daily_rate: string;
+    night_rate: string | null;
     monthly_salary: string;
     joining_date: string | null;
     guarantor_name: string | null;
@@ -98,6 +99,13 @@ export interface ExpenseCategory {
     id: number;
     name: string;
     is_recurring: boolean;
+    is_active: boolean;
+    deleted_at: string | null;
+}
+
+export interface DeductionCategory {
+    id: number;
+    name: string;
     is_active: boolean;
     deleted_at: string | null;
 }

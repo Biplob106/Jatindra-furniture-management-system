@@ -76,6 +76,31 @@ it('zeroes the rate the wage type does not use', function (string $wageType, str
     'piece' => ['piece', '0.00', '0.00'],
 ]);
 
+it('stores a night rate override for a daily worker', function () {
+    $this->actingAs($this->owner)->post('/employees', employeePayload([
+        'trade_id' => $this->trade->id,
+        'night_rate' => 250,
+    ]));
+
+    expect(Employee::sole()->night_rate)->toBe('250.00');
+});
+
+/**
+ * Monthly staff earn a fixed salary and no night allowance, so a night rate
+ * on their record would be a dead value waiting to confuse a future report.
+ */
+it('clears the night rate for a monthly worker', function () {
+    $this->actingAs($this->owner)->post('/employees', employeePayload([
+        'trade_id' => $this->trade->id,
+        'wage_type' => WageType::Monthly->value,
+        'daily_rate' => null,
+        'monthly_salary' => 18000,
+        'night_rate' => 250,
+    ]));
+
+    expect(Employee::sole()->night_rate)->toBeNull();
+});
+
 it('clears the old rate when a worker moves from daily to monthly', function () {
     $employee = Employee::factory()->create(['wage_type' => WageType::Daily, 'daily_rate' => 700, 'monthly_salary' => 0]);
 

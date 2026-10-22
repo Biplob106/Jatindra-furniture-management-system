@@ -14,6 +14,7 @@ export interface EmployeeFormData {
     shop_id: string;
     wage_type: string;
     daily_rate: string;
+    night_rate: string;
     monthly_salary: string;
     joining_date: string;
     guarantor_name: string;
@@ -109,6 +110,19 @@ export function EmployeeFormFields({ data, setData, errors, processing, wageType
                 <p className="text-muted-foreground bg-muted/50 rounded-lg border p-4 text-sm">
                     কাজ চুক্তিতে অর্ডারের কাজ শেষ হলে চুক্তির টাকা জমা হবে। এখানে কোনো হার দিতে হবে না।
                 </p>
+            )}
+
+            {(data.wage_type === 'daily' || data.wage_type === 'piece') && (
+                <TextField
+                    id="night_rate"
+                    label="রাত্রি ভাতা"
+                    type="number"
+                    numeric
+                    value={data.night_rate}
+                    onChange={(v) => setData('night_rate', v)}
+                    error={errors.night_rate}
+                    hint="খালি রাখলে দৈনিক হাজিরার অর্ধেক ধরা হবে"
+                />
             )}
 
             <SelectField

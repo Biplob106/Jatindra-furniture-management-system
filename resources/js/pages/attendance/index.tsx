@@ -20,6 +20,7 @@ interface EmployeeRow {
     trade: string | null;
     wage_type: WageType;
     daily_rate: string;
+    night_rate: string;
     status: AttendanceStatus | null;
     in_time: string | null;
     out_time: string | null;
@@ -32,6 +33,7 @@ interface StatusOption {
     value: AttendanceStatus;
     label: string;
     earnsWage: boolean;
+    hasNight: boolean;
 }
 
 interface Props {
@@ -115,8 +117,15 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
         post(route('attendance.store'));
     };
 
-    const presentCount = data.rows.filter((row) => row.status === 'present').length;
-    const halfDayCount = data.rows.filter((row) => row.status === 'half_day').length;
+    const statusByValue = Object.fromEntries(statuses.map((status) => [status.value, status]));
+
+    /** The share of a day's wage a status earns; the night is paid separately. */
+    const dayFraction = (status: AttendanceStatus) =>
+        status === 'present' || status === 'full_day_night' ? 1 : status === 'half_day' || status === 'half_day_night' ? 0.5 : 0;
+
+    const presentCount = data.rows.filter((row) => row.status === 'present' || row.status === 'full_day_night').length;
+    const halfDayCount = data.rows.filter((row) => row.status === 'half_day' || row.status === 'half_day_night').length;
+    const nightCount = data.rows.filter((row) => statusByValue[row.status]?.hasNight).length;
 
     /** What the shop owes for the day as marked, before it is saved. */
     const dayTotal = data.rows.reduce((sum, row) => {
@@ -124,10 +133,10 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
 
         if (!employee || employee.wage_type !== 'daily') return sum;
 
-        const fraction = row.status === 'present' ? 1 : row.status === 'half_day' ? 0.5 : 0;
+        const night = statusByValue[row.status]?.hasNight ? Number(employee.night_rate || 0) : 0;
         const overtime = Number(row.overtime_hours || 0) * Number(row.overtime_rate || 0);
 
-        return sum + Number(employee.daily_rate) * fraction + overtime;
+        return sum + Number(employee.daily_rate) * dayFraction(row.status) + night + overtime;
     }, 0);
 
     return (
@@ -208,7 +217,8 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                         <div className="flex flex-col gap-3">
                             {employees.map((employee) => {
                                 const row = data.rows.find((r) => r.employee_id === employee.id)!;
-                                const earns = row.status === 'present' || row.status === 'half_day';
+                                const flags = statusByValue[row.status];
+                                const worked = (flags?.earnsWage ?? false) || (flags?.hasNight ?? false);
                                 const isOpen = expanded === employee.id;
 
                                 return (
@@ -240,7 +250,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                             ))}
                                         </div>
 
-                                        {canMark && earns && (
+                                        {canMark && worked && (
                                             <button
                                                 type="button"
                                                 onClick={() => setExpanded(isOpen ? null : employee.id)}
@@ -256,7 +266,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                             </button>
                                         )}
 
-                                        {isOpen && earns && (
+                                        {isOpen && worked && (
                                             <div className="mt-3 grid gap-3 border-t pt-3 sm:grid-cols-3">
                                                 <div className="grid gap-2">
                                                     <Label htmlFor={`ot-hours-${employee.id}`}>ওভারটাইম ঘণ্টা</Label>
@@ -308,6 +318,7 @@ export default function AttendanceIndex({ workDate, shopId, shops, employees, st
                                 <p className="font-medium">
                                     উপস্থিত {toBengaliDigits(presentCount)}
                                     {halfDayCount > 0 && ` · অর্ধদিবস ${toBengaliDigits(halfDayCount)}`}
+                                    {nightCount > 0 && ` · রাত ${toBengaliDigits(nightCount)}`}
                                 </p>
                                 <p className="text-muted-foreground">দিনের মজুরি ৳ {formatMoney(dayTotal.toFixed(2))}</p>
                             </div>

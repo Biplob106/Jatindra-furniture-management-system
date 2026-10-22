@@ -1,11 +1,14 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { usePermission } from '@/hooks/use-permission';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 
-const sidebarNavItems: NavItem[] = [
+type GuardedNavItem = NavItem & { permission?: string };
+
+const sidebarNavItems: GuardedNavItem[] = [
     {
         title: 'প্রোফাইল',
         url: '/settings/profile',
@@ -21,10 +24,18 @@ const sidebarNavItems: NavItem[] = [
         url: '/settings/appearance',
         icon: null,
     },
+    {
+        title: 'পে-রোল',
+        url: '/settings/payroll',
+        icon: null,
+        permission: 'settings.manage',
+    },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
     const currentPath = window.location.pathname;
+    const { can } = usePermission();
+    const navItems = sidebarNavItems.filter((item) => !item.permission || can(item.permission));
 
     return (
         <div className="px-4 py-6">
@@ -33,7 +44,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="flex flex-col space-y-1 space-x-0">
-                        {sidebarNavItems.map((item) => (
+                        {navItems.map((item) => (
                             <Button
                                 key={item.url}
                                 size="sm"

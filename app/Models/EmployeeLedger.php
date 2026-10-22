@@ -28,6 +28,7 @@ class EmployeeLedger extends Model
         'amount',
         'reference_type',
         'reference_id',
+        'deduction_category_id',
         'payment_method',
         'note',
         'created_by',
@@ -47,6 +48,11 @@ class EmployeeLedger extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function deductionCategory(): BelongsTo
+    {
+        return $this->belongsTo(DeductionCategory::class);
     }
 
     public function scopeCredits(Builder $query): Builder

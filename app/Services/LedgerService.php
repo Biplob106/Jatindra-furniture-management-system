@@ -43,6 +43,7 @@ class LedgerService
         ?PaymentMethod $paymentMethod = null,
         ?string $note = null,
         ?int $createdBy = null,
+        ?int $deductionCategoryId = null,
     ): EmployeeLedger {
         $direction = $this->resolveDirection($type, $direction);
 
@@ -58,6 +59,7 @@ class LedgerService
             'amount' => $amount,
             'reference_type' => $reference ? $reference::class : null,
             'reference_id' => $reference?->getKey(),
+            'deduction_category_id' => $deductionCategoryId,
             'payment_method' => $paymentMethod,
             'note' => $note,
             'created_by' => $createdBy,

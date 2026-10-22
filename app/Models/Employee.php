@@ -23,6 +23,7 @@ class Employee extends Model
         'shop_id',
         'wage_type',
         'daily_rate',
+        'night_rate',
         'monthly_salary',
         'joining_date',
         'guarantor_name',
@@ -36,6 +37,7 @@ class Employee extends Model
         return [
             'wage_type' => WageType::class,
             'daily_rate' => 'decimal:2',
+            'night_rate' => 'decimal:2',
             'monthly_salary' => 'decimal:2',
             'opening_advance' => 'decimal:2',
             'joining_date' => 'date',

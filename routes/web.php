@@ -7,6 +7,7 @@ use App\Http\Controllers\DailyClosingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeLedgerController;
+use App\Http\Controllers\DeductionCategoryController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\MaterialController;
@@ -166,6 +167,7 @@ Route::middleware(['auth'])->group(function () {
         'trades' => [TradeController::class, 'trades'],
         'accounts' => [AccountController::class, 'accounts'],
         'expense-categories' => [ExpenseCategoryController::class, 'expense_categories'],
+        'deduction-categories' => [DeductionCategoryController::class, 'deduction_categories'],
         'product-categories' => [ProductCategoryController::class, 'product_categories'],
         'suppliers' => [SupplierController::class, 'suppliers'],
         'materials' => [MaterialController::class, 'materials'],

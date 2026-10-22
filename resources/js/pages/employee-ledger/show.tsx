@@ -20,6 +20,7 @@ interface Entry {
     direction: LedgerDirection;
     amount: string;
     payment_method: PaymentMethod | null;
+    category: string | null;
     note: string | null;
 }
 
@@ -47,6 +48,7 @@ interface Props {
     paymentTypes: PaymentType[];
     paymentMethods: Option[];
     accounts: AccountOption[];
+    deductionCategories: Option[];
     canPay: boolean;
 }
 
@@ -57,10 +59,21 @@ interface PaymentForm {
     entry_date: string;
     account_id: string;
     payment_method: string;
+    deduction_category_id: string;
     note: string;
 }
 
-export default function EmployeeLedgerShow({ employee, entries, balance, totals, paymentTypes, paymentMethods, accounts, canPay }: Props) {
+export default function EmployeeLedgerShow({
+    employee,
+    entries,
+    balance,
+    totals,
+    paymentTypes,
+    paymentMethods,
+    accounts,
+    deductionCategories,
+    canPay,
+}: Props) {
     const [showForm, setShowForm] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm<PaymentForm>({
@@ -69,6 +82,7 @@ export default function EmployeeLedgerShow({ employee, entries, balance, totals,
         entry_date: new Date().toISOString().slice(0, 10),
         account_id: accounts.length === 1 ? String(accounts[0].value) : '',
         payment_method: 'cash',
+        deduction_category_id: '',
         note: '',
     });
 
@@ -155,6 +169,18 @@ export default function EmployeeLedgerShow({ employee, entries, balance, totals,
                             autoFocus
                         />
 
+                        {data.type === 'deduction' && (
+                            <SelectField
+                                id="deduction_category_id"
+                                label="কর্তনের খাত"
+                                value={data.deduction_category_id}
+                                onChange={(value) => setData('deduction_category_id', value)}
+                                options={deductionCategories}
+                                error={errors.deduction_category_id}
+                                required
+                            />
+                        )}
+
                         {movesCash ? (
                             <>
                                 <SelectField
@@ -228,6 +254,7 @@ export default function EmployeeLedgerShow({ employee, entries, balance, totals,
                                 <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <span className="font-medium">{ledgerEntryTypeLabels[entry.type]}</span>
+                                        {entry.category && <Badge variant="outline">{entry.category}</Badge>}
                                         {entry.payment_method && (
                                             <Badge variant="outline">{paymentMethodLabels[entry.payment_method]}</Badge>
                                         )}
