@@ -42,6 +42,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.view', 'attendance.mark',
             'employee_ledger.view', 'employee_payment.record',
             'salary.generate',
+            'payroll.settle',
         ],
         'orders' => [
             'orders.view', 'orders.manage', 'orders.delivery',
@@ -116,6 +117,7 @@ class RolePermissionSeeder extends Seeder
             'attendance.view',
             'employee_ledger.view', 'employee_payment.record',
             'salary.generate',
+            'payroll.settle',
             'orders.view', 'orders.payment',
             'transactions.view', 'transactions.record',
             'expenses.view', 'expenses.record',

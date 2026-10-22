@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PayrollSettlement;
 use App\Models\Shop;
 use App\Queries\PayrollSummary;
 use Carbon\CarbonImmutable;
@@ -28,6 +29,15 @@ class PayrollReportController extends Controller
             return $this->csv($rows, $from, $to);
         }
 
+        $settledIds = PayrollSettlement::query()
+            ->where('period_start', $from)
+            ->where('period_end', $to)
+            ->when($shopId, fn ($query) => $query->where('shop_id', $shopId))
+            ->whereNull('reversed_at')
+            ->pluck('employee_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
         return Inertia::render('reports/payroll', [
             'rows' => $rows,
             'totals' => $summary->totals($from, $to, $shopId),
@@ -39,6 +49,8 @@ class PayrollReportController extends Controller
                 ->get(['id', 'name'])
                 ->map(fn (Shop $shop) => ['value' => $shop->id, 'label' => $shop->name])
                 ->all(),
+            'settledIds' => $settledIds,
+            'canSettle' => $request->user()->can('payroll.settle'),
         ]);
     }
 

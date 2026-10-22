@@ -1,5 +1,7 @@
+import { FlashMessages } from '@/components/flash-messages';
 import { Option } from '@/components/form-field';
 import { Money } from '@/components/money';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +10,7 @@ import AppLayout from '@/layouts/app-layout';
 import { wageTypeLabels, type WageType } from '@/types/enums';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Download } from 'lucide-react';
+import { Download, Lock, Unlock } from 'lucide-react';
 
 interface PayrollRow {
     id: number;
@@ -29,6 +31,8 @@ interface Props {
     to: string;
     shopId: number | null;
     shops: Option[];
+    settledIds: number[];
+    canSettle: boolean;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -38,7 +42,22 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const ALL = '__all__';
 
-export default function PayrollReport({ rows, totals, from, to, shopId, shops }: Props) {
+export default function PayrollReport({ rows, totals, from, to, shopId, shops, settledIds, canSettle }: Props) {
+    const settled = new Set(settledIds);
+    const periodPayload = { from, to, ...(shopId ? { shop_id: shopId } : {}) };
+
+    const finalize = () => {
+        if (confirm('এই সময়ের পে-রোল চূড়ান্ত করবেন? পরে দরকারে বাতিল করা যাবে।')) {
+            router.post(route('reports.payroll.settle'), periodPayload, { preserveScroll: true });
+        }
+    };
+
+    const reverse = () => {
+        if (confirm('এই সময়ের চূড়ান্ত পে-রোল বাতিল করবেন?')) {
+            router.post(route('reports.payroll.reverse'), periodPayload, { preserveScroll: true });
+        }
+    };
+
     const reload = (changes: Record<string, string>) => {
         const next: Record<string, string | number> = {
             from,
@@ -79,13 +98,29 @@ export default function PayrollReport({ rows, totals, from, to, shopId, shops }:
                         <h1 className="text-2xl font-semibold">পে-রোল রিপোর্ট</h1>
                         <p className="text-muted-foreground text-sm">কর্মীভিত্তিক জমা, পরিশোধ, কর্তন ও বকেয়া</p>
                     </div>
-                    <Button variant="outline" asChild>
-                        <a href={csvHref}>
-                            <Download className="h-4 w-4" />
-                            CSV ডাউনলোড
-                        </a>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                        {canSettle &&
+                            (settled.size > 0 ? (
+                                <Button variant="outline" onClick={reverse}>
+                                    <Unlock className="h-4 w-4" />
+                                    চূড়ান্ত বাতিল করুন
+                                </Button>
+                            ) : (
+                                <Button onClick={finalize}>
+                                    <Lock className="h-4 w-4" />
+                                    পে-রোল চূড়ান্ত করুন
+                                </Button>
+                            ))}
+                        <Button variant="outline" asChild>
+                            <a href={csvHref}>
+                                <Download className="h-4 w-4" />
+                                CSV ডাউনলোড
+                            </a>
+                        </Button>
+                    </div>
                 </div>
+
+                <FlashMessages />
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="grid gap-2">
@@ -151,7 +186,15 @@ export default function PayrollReport({ rows, totals, from, to, shopId, shops }:
                                 {rows.map((row) => (
                                     <tr key={row.id} className="border-t">
                                         <td className="p-3">
-                                            <p className="font-medium">{row.name}</p>
+                                            <p className="flex items-center gap-2 font-medium">
+                                                {row.name}
+                                                {settled.has(row.id) && (
+                                                    <Badge variant="outline" className="gap-1 text-xs">
+                                                        <Lock className="h-3 w-3" />
+                                                        চূড়ান্ত
+                                                    </Badge>
+                                                )}
+                                            </p>
                                             <p className="text-muted-foreground text-xs">
                                                 {row.employee_code} · {wageTypeLabels[row.wage_type]}
                                             </p>

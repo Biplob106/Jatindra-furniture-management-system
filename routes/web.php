@@ -19,6 +19,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\PayrollReportController;
+use App\Http\Controllers\PayrollSettlementController;
 use App\Http\Controllers\SpendingReportController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
@@ -104,6 +105,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/payroll', PayrollReportController::class)
         ->middleware('permission:reports.operational')
         ->name('reports.payroll');
+
+    Route::middleware('permission:payroll.settle')->group(function () {
+        Route::post('reports/payroll/settle', [PayrollSettlementController::class, 'store'])->name('reports.payroll.settle');
+        Route::post('reports/payroll/reverse', [PayrollSettlementController::class, 'reverse'])->name('reports.payroll.reverse');
+    });
 
     // Supplier accounts. Reading what is owed and paying it are separate
     // permissions: a storekeeper never hands money over.
