@@ -83,7 +83,7 @@ export default function EmployeeLedgerIndex({ employees, search, totalOwed }: Pr
 
                 {employees.length === 0 ? (
                     <div className="text-muted-foreground rounded-lg border border-dashed p-10 text-center">
-                        {search ? `"${search}" এর জন্য কিছু পাওয়া যায়নি` : 'কোনো সক্রিয় কর্মী নেই'}
+                        {search ? `"${search}" এর জন্য কিছু পাওয়া যায়নি` : 'এখন কারো বকেয়া পাওনা নেই'}
                     </div>
                 ) : (
                     <div className="flex flex-col gap-2">
@@ -109,7 +109,7 @@ export default function EmployeeLedgerIndex({ employees, search, totalOwed }: Pr
                 )}
 
                 <p className="text-muted-foreground text-sm">
-                    মোট {toBengaliDigits(employees.length)} জন কর্মী
+                    {toBengaliDigits(employees.length)} জন কর্মীর হিসাব বাকি
                 </p>
             </div>
         </AppLayout>

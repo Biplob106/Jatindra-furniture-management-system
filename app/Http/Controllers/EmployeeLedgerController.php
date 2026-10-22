@@ -52,6 +52,10 @@ class EmployeeLedgerController extends Controller
             'wage_type' => $employee->wage_type->value,
             'balance' => $balances[$employee->id] ?? '0.00',
         ])
+            // A fully settled worker is not a due; only unsettled accounts belong
+            // on this list, whichever way they lean. The master employee list is
+            // where every worker, cleared or not, is reachable.
+            ->filter(fn (array $row) => bccomp($row['balance'], '0.00', 2) !== 0)
             // The person owed most sits at the top, since that is who asks first.
             ->sortByDesc(fn (array $row) => (float) $row['balance'])
             ->values()

@@ -42,6 +42,22 @@ it('lists workers with what each is owed', function () {
 });
 
 /**
+ * A worker whose account is fully settled is not a due, so they drop off the
+ * dues list rather than sitting there at zero.
+ */
+it('leaves a fully cleared worker off the dues list', function () {
+    $cleared = Employee::factory()->create(['name' => 'পরিশোধিত কর্মী']);
+    app(LedgerService::class)->record($cleared, LedgerEntryType::WageEarned, '1000.00', '2026-07-01');
+    app(LedgerService::class)->record($cleared, LedgerEntryType::Payout, '1000.00', '2026-07-05');
+
+    $this->actingAs($this->accountant)
+        ->get('/employee-ledger')
+        ->assertInertia(fn ($page) => $page
+            ->where('employees', fn ($rows) => collect($rows)->doesntContain('id', $cleared->id))
+            ->where('employees', fn ($rows) => collect($rows)->contains('id', $this->employee->id)));
+});
+
+/**
  * The person owed most is who asks first, so they belong at the top.
  */
 it('puts the biggest balance first', function () {
