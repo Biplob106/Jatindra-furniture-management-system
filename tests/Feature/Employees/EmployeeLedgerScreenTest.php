@@ -110,6 +110,24 @@ it('records a fine without touching the cash box', function () {
         ->and($this->account->fresh()->current_balance)->toBe('50000.00');
 });
 
+it('shows the month attendance and money summary on the detail page', function () {
+    app(\App\Actions\Attendance\MarkDailyAttendance::class)->handle('2026-07-15', [
+        ['employee_id' => $this->employee->id, 'status' => 'full_day_night'],
+    ]);
+
+    $this->actingAs($this->accountant)
+        ->get("/employee-ledger/{$this->employee->id}?month=2026-07")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('month', '2026-07')
+            ->where('monthSummary.full_day_night', 1)
+            ->where('monthSummary.nights', 1)
+            ->where('monthSummary.worked_days', '1.0')
+            // 5000 opening wage + 700 day + 350 night earned in July
+            ->where('monthSummary.earned', '6050.00')
+            ->where('monthSummary.night_pay', '350.00'));
+});
+
 it('records a custom deduction tagged with its category', function () {
     $category = App\Models\DeductionCategory::factory()->create(['name' => 'ইউনিফর্ম']);
 

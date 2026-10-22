@@ -129,6 +129,12 @@ it('refuses a duplicate employee code', function () {
     expect(Employee::count())->toBe(1);
 });
 
+it('tells the employees list whether the ledger detail is reachable', function () {
+    $this->actingAs($this->owner)
+        ->get('/employees')
+        ->assertInertia(fn ($page) => $page->where('canViewLedger', true));
+});
+
 it('suggests the next employee code', function () {
     Employee::factory()->create(['employee_code' => 'EMP-0007']);
 

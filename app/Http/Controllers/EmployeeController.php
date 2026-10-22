@@ -34,6 +34,7 @@ class EmployeeController extends Controller
                 ->withQueryString(),
             'search' => $search,
             'canManage' => $request->user()->can('employees.manage'),
+            'canViewLedger' => $request->user()->can('employee_ledger.view'),
         ]);
     }
 

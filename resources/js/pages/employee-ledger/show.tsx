@@ -9,7 +9,7 @@ import { formatMoney } from '@/lib/number-format';
 import { type BreadcrumbItem } from '@/types';
 import { ledgerEntryTypeLabels, paymentMethodLabels, type LedgerDirection, type LedgerEntryType, type PaymentMethod, type WageType } from '@/types/enums';
 import type { Paginated } from '@/types/pagination';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { LoaderCircle, Plus } from 'lucide-react';
 import { FormEventHandler, useState } from 'react';
 
@@ -50,6 +50,25 @@ interface Props {
     accounts: AccountOption[];
     deductionCategories: Option[];
     canPay: boolean;
+    month: string;
+    monthSummary: {
+        present: number;
+        half_day: number;
+        night_only: number;
+        full_day_night: number;
+        half_day_night: number;
+        absent: number;
+        leave: number;
+        holiday: number;
+        nights: number;
+        worked_days: string;
+        earned: string;
+        night_pay: string;
+        advance: string;
+        tiffin: string;
+        payout: string;
+        deductions: string;
+    };
 }
 
 interface PaymentForm {
@@ -73,8 +92,18 @@ export default function EmployeeLedgerShow({
     accounts,
     deductionCategories,
     canPay,
+    month,
+    monthSummary,
 }: Props) {
     const [showForm, setShowForm] = useState(false);
+
+    const changeMonth = (value: string) => {
+        router.get(route('employee-ledger.show', employee.id), value ? { month: value } : {}, {
+            preserveScroll: true,
+            preserveState: false,
+            replace: true,
+        });
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm<PaymentForm>({
         type: 'payout',
@@ -134,6 +163,59 @@ export default function EmployeeLedgerShow({
                         </span>
                         <span>
                             মোট নেওয়া <Money amount={totals.taken} className="text-foreground font-medium" />
+                        </span>
+                    </div>
+                </div>
+
+                <div className="rounded-lg border">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b p-4">
+                        <h2 className="font-medium">মাসিক হিসাব</h2>
+                        <input
+                            type="month"
+                            value={month}
+                            max={new Date().toISOString().slice(0, 7)}
+                            onChange={(e) => changeMonth(e.target.value)}
+                            className="border-input bg-background h-11 rounded-md border px-3 text-base"
+                            aria-label="মাস"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+                        {[
+                            { label: 'কর্মদিবস', value: toBengaliDigits(monthSummary.worked_days) },
+                            { label: 'উপস্থিত', value: toBengaliDigits(monthSummary.present) },
+                            { label: 'অর্ধদিবস', value: toBengaliDigits(monthSummary.half_day) },
+                            { label: 'রাত', value: toBengaliDigits(monthSummary.nights) },
+                            { label: 'পূর্ণ দিন + রাত', value: toBengaliDigits(monthSummary.full_day_night) },
+                            { label: 'শুধু রাত', value: toBengaliDigits(monthSummary.night_only) },
+                            { label: 'অনুপস্থিত', value: toBengaliDigits(monthSummary.absent) },
+                            { label: 'ছুটি', value: toBengaliDigits(monthSummary.leave + monthSummary.holiday) },
+                        ].map((stat) => (
+                            <div key={stat.label} className="bg-background p-3">
+                                <p className="text-muted-foreground text-xs">{stat.label}</p>
+                                <p className="text-lg font-semibold tabular-nums">{stat.value}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="text-muted-foreground flex flex-wrap gap-x-6 gap-y-2 border-t p-4 text-sm">
+                        <span>
+                            এই মাসে জমা <Money amount={monthSummary.earned} className="text-foreground font-medium" />
+                        </span>
+                        <span>
+                            এর মধ্যে রাত্রি ভাতা <Money amount={monthSummary.night_pay} className="text-foreground font-medium" />
+                        </span>
+                        <span>
+                            অগ্রিম <Money amount={monthSummary.advance} className="text-foreground font-medium" />
+                        </span>
+                        <span>
+                            টিফিন <Money amount={monthSummary.tiffin} className="text-foreground font-medium" />
+                        </span>
+                        <span>
+                            পরিশোধ <Money amount={monthSummary.payout} className="text-foreground font-medium" />
+                        </span>
+                        <span>
+                            কর্তন <Money amount={monthSummary.deductions} className="text-foreground font-medium" />
                         </span>
                     </div>
                 </div>

@@ -10,7 +10,9 @@ use App\Models\Account;
 use App\Models\DeductionCategory;
 use App\Models\Employee;
 use App\Models\EmployeeLedger;
+use App\Queries\EmployeeMonthSummary;
 use App\Services\LedgerService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -70,8 +72,16 @@ class EmployeeLedgerController extends Controller
      * One worker's account: what they have earned, what they have taken, and
      * the running balance between the two.
      */
-    public function show(Request $request, Employee $employee): Response
+    public function show(Request $request, Employee $employee, EmployeeMonthSummary $monthSummary): Response
     {
+        $month = rescue(
+            fn () => CarbonImmutable::createFromFormat('!Y-m', $request->string('month')->toString()),
+            CarbonImmutable::today(),
+            report: false
+        );
+        $from = $month->startOfMonth()->toDateString();
+        $to = $month->endOfMonth()->toDateString();
+
         $entries = EmployeeLedger::query()
             ->where('employee_id', $employee->id)
             ->with('deductionCategory:id,name')
@@ -103,6 +113,20 @@ class EmployeeLedgerController extends Controller
             'entries' => $entries,
             'balance' => $this->ledger->balanceFor($employee),
             'totals' => $this->totalsFor($employee),
+            'month' => $month->format('Y-m'),
+            'monthSummary' => (function () use ($monthSummary, $employee, $from, $to) {
+                $money = $monthSummary->moneyFor($employee, $from, $to);
+
+                return [
+                    ...$monthSummary->attendanceFor($employee, $from, $to),
+                    'earned' => $money['earned'],
+                    'night_pay' => $money['night'],
+                    'advance' => $money['advance'],
+                    'tiffin' => $money['tiffin'],
+                    'payout' => $money['payout'],
+                    'deductions' => $money['deductions'],
+                ];
+            })(),
             'paymentTypes' => $this->paymentTypeOptions(),
             'deductionCategories' => DeductionCategory::query()
                 ->where('is_active', true)

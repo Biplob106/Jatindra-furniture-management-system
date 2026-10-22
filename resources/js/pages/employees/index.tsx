@@ -5,6 +5,7 @@ import { formatMoney } from '@/lib/number-format';
 import { wageTypeLabels } from '@/types/enums';
 import type { Employee } from '@/types/models';
 import type { Paginated } from '@/types/pagination';
+import { Link } from '@inertiajs/react';
 
 type EmployeeRow = Omit<Employee, 'trade' | 'shop'> & {
     trade: { id: number; name: string } | null;
@@ -15,18 +16,25 @@ interface Props {
     employees: Paginated<EmployeeRow>;
     search: string;
     canManage: boolean;
+    canViewLedger: boolean;
 }
 
-export default function EmployeesIndex({ employees, search, canManage }: Props) {
+export default function EmployeesIndex({ employees, search, canManage, canViewLedger }: Props) {
     const columns: Column<EmployeeRow>[] = [
         {
             header: 'নাম',
-            cell: (employee) => (
-                <div className="flex flex-col">
-                    <span className="font-medium">{employee.name}</span>
-                    <span className="text-muted-foreground text-sm">{employee.employee_code}</span>
-                </div>
-            ),
+            cell: (employee) =>
+                canViewLedger ? (
+                    <Link href={route('employee-ledger.show', employee.id)} className="flex flex-col">
+                        <span className="text-primary font-medium hover:underline">{employee.name}</span>
+                        <span className="text-muted-foreground text-sm">{employee.employee_code}</span>
+                    </Link>
+                ) : (
+                    <div className="flex flex-col">
+                        <span className="font-medium">{employee.name}</span>
+                        <span className="text-muted-foreground text-sm">{employee.employee_code}</span>
+                    </div>
+                ),
         },
         { header: 'কাজ', cell: (employee) => employee.trade?.name ?? '—' },
         { header: 'মোবাইল', cell: (employee) => employee.phone ?? '—', hideOnMobile: true },
